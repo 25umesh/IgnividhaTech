@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact - IgnividhaTech</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script>
+    // Theme init to keep pages consistent with dashboard's toggle (avoid FOUC)
+    (function(){ try { const saved = localStorage.getItem('theme'); const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; const isDark = saved ? (saved === 'dark') : prefersDark; if (isDark) document.documentElement.classList.add('dark'); } catch(e){} })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Light-mode overrides so this page respects the site-wide theme */
+    html:not(.dark) body { background: #f6f7fb !important; color: #0f172a !important; }
+    html:not(.dark) .contact-card, html:not(.dark) .form-card { background: #ffffff !important; border: 1px solid rgba(15,23,42,0.06) !important; box-shadow: 0 6px 20px rgba(2,6,23,0.04) !important; }
+    html:not(.dark) h1, html:not(.dark) h2 { color: #0b1220 !important; text-shadow: none !important; }
+    html:not(.dark) .submit-btn { background: linear-gradient(90deg,#ffffff,#f3f4f6) !important; color: #0b1220 !important; box-shadow: 0 6px 18px rgba(2,6,23,0.04) !important; }
+    /* Additional light-mode tweaks so icons, labels and contact items remain readable */
+    html:not(.dark) .contact-item { background: #ffffff !important; border-left-color: #06b6d4 !important; color: #0f172a !important; box-shadow: 0 4px 18px rgba(2,6,23,0.04) !important; }
+    html:not(.dark) .contact-item:hover { background: #f8fafc !important; transform: none !important; border-left-color: #8b5cf6 !important; }
+    html:not(.dark) .contact-item i { color: #06b6d4 !important; background: rgba(6,182,212,0.06) !important; }
+    html:not(.dark) .contact-label { color: #6b7280 !important; }
+    html:not(.dark) .contact-value { color: #0f172a !important; }
+    html:not(.dark) .contact-value a { color: #0b86a0 !important; }
+    html:not(.dark) .form-group label { color: #374151 !important; }
+    html:not(.dark) .form-group input, html:not(.dark) .form-group textarea { background: #ffffff !important; color: #0f172a !important; border: 1px solid #e5e7eb !important; box-shadow: none !important; }
+    html:not(.dark) .back-btn { background: #ffffff !important; color: #06b6d4 !important; border: 2px solid #06b6d4 !important; }
+    html:not(.dark) .back-btn:hover { background: #06b6d4 !important; color: #ffffff !important; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f0f15, #1a1a28);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .contact-card, .form-card {
+      background: #1e1e2e;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .contact-card:hover, .form-card:hover {
+      border-color: rgba(6, 182, 212, 0.6);
+      box-shadow: 0 10px 50px rgba(6, 182, 212, 0.2);
+    }
+
+    h1 {
+      color: #06b6d4;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+
+    h2 {
+      color: #06b6d4;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border-left: 4px solid #06b6d4;
+      transition: all 0.3s ease;
+    }
+
+    .contact-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      transform: translateX(5px);
+      border-left-color: #8b5cf6;
+    }
+
+    .contact-item i {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #06b6d4;
+      background: rgba(6, 182, 212, 0.1);
+      border-radius: 50%;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .contact-content {
+      flex: 1;
+    }
+
+    .contact-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+
+    .contact-value {
+      color: #f1f5f9;
+      font-size: 15px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .contact-value a {
+      color: #06b6d4;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .contact-value a:hover {
+      color: #8b5cf6;
+      text-decoration: underline;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #06b6d4;
+      color: #000;
+      font-weight: 700;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
+
+    .submit-btn:hover {
+      background: #8b5cf6;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 12px 30px;
+      background: #1e1e2e;
+      color: #06b6d4;
+      font-weight: 700;
+      border: 2px solid #06b6d4;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: #06b6d4;
+      color: #000;
+      transform: translateY(-2px);
+    }
+
+    /* Flash Messages */
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+
+    .flashes li {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .flashes .success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid #10b981;
+    }
+
+    .flashes .error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    @media (max-width: 768px) {
+      .contact-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      .contact-card, .form-card {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="text-align: center; margin-bottom: 40px;">
+      <h1>📞 Contact Us</h1>
+      <p class="subtitle">Get in touch with IgnividhaTech or send us your query</p>
+      <a href="{{ url_for('home') }}" class="back-btn">← Back to Home</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div class="contact-wrapper">
+      <!-- Contact Information -->
+      <div class="contact-card">
+        <h2>Contact Information</h2>
+
+        <div class="contact-item">
+          <i class="fas fa-user"></i>
+          <div class="contact-content">
+            <div class="contact-label">Company Name</div>
+            <div class="contact-value">IgnividhaTech</div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <i class="fas fa-envelope"></i>
+          <div class="contact-content">
+            <div class="contact-label">Email Address</div>
+            <div class="contact-value">
+              <a href="mailto:tatvatech2225@gmail.com">tatvatech2225@gmail.com</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <i class="fas fa-map-marker-alt"></i>
+          <div class="contact-content">
+            <div class="contact-label">Location</div>
+            <div class="contact-value">Hyderabad, India</div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <i class="fas fa-building"></i>
+          <div class="contact-content">
+            <div class="contact-label">Work Mode</div>
+            <div class="contact-value">Remote / Work From Home</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="form-card">
+        <h2>Send Your Query</h2>
+        <form method="POST" action="{{ url_for('contact') }}">
+          <div class="form-group">
+            <label for="name">Your Name *</label>
+            <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Your Email *</label>
+            <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="message">Your Message/Query *</label>
+            <textarea id="message" name="message" placeholder="Write your query or message here..." required></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane"></i> Submit Query
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

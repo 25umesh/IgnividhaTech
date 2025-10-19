@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IgnividhaTech Developer Recruitment</title>
+  <script>
+    // Tailwind config for dark mode via class
+    tailwind = { config: { darkMode: 'class' } };
+    // Set initial theme early to avoid FOUC
+    (function() {
+      try {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = saved ? (saved === 'dark') : prefersDark;
+        if (isDark) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Custom styles to mimic the dark, techy feel */
+    :root {
+      --primary-dark: #070e17; /* Very dark background */
+      --accent-cyan: #06b6d4; /* Tailwind cyan-500 */
+      --accent-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--primary-dark);
+    }
+    /* Light mode overrides */
+    html:not(.dark) body {
+      background-color: #f6f7fb;
+      color: #0f172a;
+    }
+    html:not(.dark) .card {
+      background-color: #ffffff !important;
+      border-color: rgba(15,23,42,0.1) !important;
+    }
+  html:not(.dark) .header-link { color: #0f172a !important; }
+  html:not(.dark) .header-link:hover { color: #111827 !important; }
+    .neon-glow {
+      text-shadow: 0 0 8px var(--accent-cyan);
+    }
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background-color: #0f172a; /* Dark slate blue */
+      border: 1px solid rgba(6, 182, 212, 0.3); /* Cyan border */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(6, 182, 212, 0.25);
+    }
+    .header-link:hover {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 5px rgba(6, 182, 212, 0.5);
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+    /* Hero title and CTA styling moved from inline to CSS for maintainability */
+    .hero-title {
+      color: #ffffff;
+      -webkit-text-stroke: 3px #000000;
+      text-stroke: 3px #000000;
+      text-shadow:
+        3px 3px 0px #1a1a1a,
+        6px 6px 0px #2a2a2a,
+        9px 9px 0px #3a3a3a,
+        12px 12px 20px rgba(0,0,0,0.8);
+      letter-spacing: 0.05em;
+      paint-order: stroke fill;
+      line-height: 0.9;
+    }
+    @media (max-width: 640px) {
+      .hero-title { font-size: 3.5rem; -webkit-text-stroke: 2px #000; text-shadow: 4px 4px 10px rgba(0,0,0,0.6); }
+    }
+    .hero-cta {
+      display: inline-block;
+      background: #ffffff;
+      color: #0b1220;
+      padding: 12px 34px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.125rem;
+      border: 1px solid rgba(11,18,32,0.06);
+      box-shadow: 0 18px 40px rgba(2,6,23,0.45), 0 8px 24px rgba(6,182,212,0.06);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+      /* pull the button upward to sit visually in the hero middle */
+      margin-top: -1.5rem;
+      padding-top: 14px;
+      padding-bottom: 14px;
+      min-width: 220px;
+    }
+    .hero-cta:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 28px 60px rgba(2,6,23,0.5); }
+    /* Dark-mode inverse so the CTA still reads as a button */
+    html.dark .hero-cta { background: #0b1220; color: #fff; border-color: rgba(255,255,255,0.04); box-shadow: 0 18px 40px rgba(0,0,0,0.6); }
+    /* Tweak hero vertical placement - user asked to move text upward */
+    .hero-content { padding-top: 2.25rem; padding-bottom: 1rem; }
+    @media (min-width: 640px) {
+      .hero-content { padding-top: 3.25rem; }
+    }
+    @media (min-width: 1024px) {
+      .hero-content { padding-top: 4.75rem; }
+    }
+  /* Ensure the CTA label is vertically centered and has an accessible hit area */
+  .hero-cta { display:inline-flex; align-items:center; justify-content:center; min-height:56px; margin-top:0.5rem; }
+    /* Vertical line for the timeline */
+    .timeline-container::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: calc(100% - 20px);
+      background-color: var(--accent-cyan);
+      opacity: 0.3;
+      border-radius: 2px;
+    }
+    /* Position line to the left for stacked view on mobile */
+    @media (max-width: 767px) {
+        .timeline-container::before {
+            left: 14px;
+        }
+    }
+  /* Default dark-mode text color */
+  html.dark body { color: #e5e7eb; }
+  /* Stronger light-mode colors for the About section to avoid accidental fade */
+  html:not(.dark) #about, 
+  html:not(.dark) #about h1,
+  html:not(.dark) #about h2,
+  html:not(.dark) #about h3,
+  html:not(.dark) #about p,
+  html:not(.dark) #about li {
+    color: #0f172a !important; /* slate-900 for titles */
+  }
+  html:not(.dark) #about p,
+  html:not(.dark) #about li {
+    color: #1f2937 !important; /* slate-800 for body text */
+  }
+  /* Stronger light-mode colors for the Qualifications section */
+  html:not(.dark) #qualifications, 
+  html:not(.dark) #qualifications h1,
+  html:not(.dark) #qualifications h2,
+  html:not(.dark) #qualifications h3,
+  html:not(.dark) #qualifications p,
+  html:not(.dark) #qualifications li {
+    color: #0f172a !important;
+  }
+  html:not(.dark) #qualifications p,
+  html:not(.dark) #qualifications li { color: #1f2937 !important; }
+  /* Stronger light-mode colors for the Positions section (card text) */
+  html:not(.dark) #positions .card h4 { color: #0f172a !important; }
+  html:not(.dark) #positions .card p { color: #374151 !important; }
+    /* Navbar behaviour: transparent at page-top (overlay the hero) and solid on scroll.
+       Use high-specificity rules so the visual state is consistent across browsers. */
+    .nav-transparent {
+      background: transparent !important;
+      border-bottom: 0 !important;
+      position: absolute !important;
+      top: 0; left: 0; right: 0;
+      z-index: 60 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Smooth transitions for state changes */
+    #mainNav { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
+
+    /* Solid state: force sticky position and visible background */
+    #mainNav.scrolled {
+      position: sticky !important;
+      background: #ffffff !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      box-shadow: 0 4px 18px rgba(16,24,40,0.06) !important;
+    }
+
+    html.dark #mainNav.scrolled {
+      position: sticky !important;
+      background: #0b1220 !important;
+      border-bottom: 1px solid #1f2937 !important;
+      box-shadow: 0 4px 18px rgba(2,6,23,0.6) !important;
+    }
+  /* Transparent navbar: keep text/link colors light so they are readable over the dark hero */
+  .nav-transparent .brand,
+  .nav-transparent .tagline { color: #ffffff !important; }
+  .nav-transparent .header-link { color: rgba(255,255,255,0.9) !important; }
+  .nav-transparent .header-link:hover { color: #ffffff !important; }
+
+  /* Light-mode: give the transparent navbar a subtle opaque backdrop and
+     use dark links so the nav is readable at page-top. The scrolled state
+     still switches to a solid background when the user scrolls. */
+  html:not(.dark) .nav-transparent {
+    background: rgba(255,255,255,0.92) !important;
+    border-bottom: 1px solid rgba(15,23,42,0.06) !important;
+    backdrop-filter: blur(6px);
+  }
+  html:not(.dark) .nav-transparent .brand,
+  html:not(.dark) .nav-transparent .tagline,
+  html:not(.dark) .nav-transparent .header-link {
+    color: #0f172a !important;
+  }
+
+  /* Alternate state for light-mode when nav is at top: apply a subtle
+     opaque background and ensure links are dark. We toggle .light-top
+     on the nav with JS so this only applies when at the page top. */
+  .nav-transparent.light-top {
+    background: rgba(255,255,255,0.92) !important;
+    border-bottom: 1px solid rgba(15,23,42,0.06) !important;
+    backdrop-filter: blur(6px);
+  }
+  .nav-transparent.light-top .brand,
+  .nav-transparent.light-top .tagline,
+  .nav-transparent.light-top .header-link {
+    color: #0f172a !important;
+  }
+
+  /* Scrolled (solid) navbar: dark text in light-mode, white in dark-mode */
+    #mainNav.scrolled .brand,
+  #mainNav.scrolled .tagline { color: #111827 !important; }
+  /* Scrolled header links color (dark mode/light mode) */
+  #mainNav.scrolled .header-link { color: #374151 !important; }
+  html.dark #mainNav.scrolled .brand,
+  html.dark #mainNav.scrolled .tagline { color: #ffffff !important; }
+  html.dark #mainNav.scrolled .header-link { color: #e5e7eb !important; }
+
+  /* Slight shadow tweak for register button when navbar is transparent */
+  .nav-transparent #register-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  </style>
+</head>
+<body>
+
+  <nav id="mainNav" class="sticky top-0 z-50 nav-transparent backdrop-blur-md shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <h1 class="brand text-2xl font-extrabold text-gray-900 dark:text-white tracking-wider">IgnividhaTech</h1>
+        <span class="tagline hidden sm:inline text-base md:text-lg font-semibold text-gray-800 dark:text-white">| Developer Recruitment</span>
+      </div>
+  <div class="flex items-center gap-6 md:gap-8">
+        <a href="#about" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">About</a>
+        <a href="#positions" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Positions</a>
+        <a href="#qualifications" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Qualifications</a>
+        <a href="#guidelines" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Guidelines</a>
+
+      <button id="themeToggle" type="button"
+           class="hidden md:inline-flex items-center justify-center h-10 gap-2 px-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition"
+           aria-label="Toggle theme">
+          <svg class="icon-sun h-5 w-5 text-yellow-500 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/>
+            <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon-moon h-5 w-5 text-gray-700 dark:text-cyan-300" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+          </svg>
+        </button>
+        
+        <a href="{{ url_for('register') }}" target="_blank" id="register-btn"
+           class="inline-flex items-center h-10 bg-white text-black px-5 rounded-lg font-semibold text-sm hover:bg-gray-200 transition shadow-lg shadow-cyan-900/40">
+          Register Now
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-900 h-[70vh] md:h-[75vh] flex items-center justify-center relative overflow-hidden">
+    <div class="text-center px-4 max-w-4xl z-10 hero-content">
+      <span class="text-sm font-medium bg-red-600 text-white px-3 py-1 rounded-full mb-3 inline-block shadow-md">PAID OPPORTUNITY</span>
+      <h1 class="text-6xl md:text-8xl font-extrabold mb-4 tracking-wider hero-title">
+        IgnividhaTech
+      </h1>
+      <h2 class="text-4xl md:text-5xl font-semibold mb-6 text-gray-900 dark:text-white tracking-wide">
+        Developer Recruitment
+      </h2>
+      <p class="text-lg md:text-xl font-light mb-6 text-gray-700 dark:text-gray-300">
+        Work From Home – Part-Time: Project-Based Stipends
+      </p>
+      <p class="text-base md:text-lg font-semibold text-gray-900 dark:text-white/90 mb-6">
+        Open to all students and graduates interested in remote part-time work.
+      </p>
+    <a href="{{ url_for('register') }}" target="_blank" 
+      class="hero-cta">
+        Register Now
+      </a>
+    </div>
+  <div class="absolute inset-0 z-0 opacity-25" style="background: radial-gradient(circle at 50% 10%, rgba(0,0,0,0.45) 0%, transparent 70%);"></div>
+  </section>
+
+  <section id="about" class="container mx-auto px-4 py-20 max-w-6xl">
+    <h2 class="text-3xl font-bold mb-12 text-gray-900 dark:text-white text-center">About the Opportunity</h2>
+    
+    <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+      <div class="md:w-2/5 text-center md:text-right">
+        <p class="text-gray-800 dark:text-gray-300 text-lg">
+          Join our remote developer team on a project-by-project basis. Earn stipends for completed work, not a fixed salary.
+        </p>
+      </div>
+      <div class="flex-shrink-0 order-first md:order-none">
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="TatvaTech Logo" class="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-white/50 shadow-lg shadow-white/40">
+      </div>
+      <div class="md:w-2/5 text-center md:text-left">
+        <p class="text-gray-800 dark:text-gray-300 text-lg">
+          Gain real-world experience on exciting projects with flexible hours. Work from anywhere and meet project deadlines to build your portfolio.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="positions" class="bg-gray-950 py-20 border-t border-b border-cyan-800/30">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <h2 class="text-3xl font-bold text-center mb-12 text-white">We’re Looking For:</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
+          <span class="text-5xl mb-4 inline-block text-cyan-400">🖥</span>
+          <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Frontend Developers</h4>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Build responsive user interfaces and web applications.</p>
+        </div>
+        <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
+          <span class="text-5xl mb-4 inline-block text-yellow-400">⚙</span>
+          <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Backend Developers</h4>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Design APIs, manage databases, and write server-side logic.</p>
+        </div>
+        <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
+          <span class="text-5xl mb-4 inline-block text-gray-500 dark:text-gray-300">🌐</span>
+          <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Full Stack Developers</h4>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Handle both client-side and server-side infrastructure.</p>
+        </div>
+        <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
+          <span class="text-5xl mb-4 inline-block text-pink-400">📱</span>
+          <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">App Developers</h4>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Develop Android/iOS apps focused on performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="qualifications" class="container mx-auto px-4 py-20">
+    <h2 class="text-3xl font-bold text-center mb-16 text-gray-900 dark:text-white">Qualifications</h2>
+    
+    <div class="relative timeline-container max-w-3xl mx-auto">
+      <div class="flex flex-col md:grid md:grid-cols-2 gap-y-12">
+          
+        <div class="flex md:justify-end">
+          <div class="relative w-full md:w-10/12 pl-12 md:pl-0 md:pr-12">
+            <div class="absolute top-1 -left-1.5 md:left-auto md:-right-[1.1rem] w-6 h-6 rounded-full bg-cyan-500 shadow-md shadow-cyan-500/50 border-4 border-gray-900"></div>
+            <div class="card rounded-lg p-5">
+              <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">Core Requirement (All Applicants)</h3>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Required: Upload at least one offline Hackathon Certificate. You can submit multiple certificates if available.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block"></div>
+        <div class="hidden md:block"></div>
+
+        <div class="flex md:justify-start">
+          <div class="relative w-full md:w-10/12 pl-12 md:pl-12">
+            <div class="absolute top-1 -left-1.5 md:-left-[1.1rem] w-6 h-6 rounded-full bg-cyan-500 shadow-md shadow-cyan-500/50 border-4 border-gray-900"></div>
+            <div class="card rounded-lg p-5">
+              <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">For Students 👨‍🎓</h3>
+              <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                <li>Provide your College ID Card for verification.</li>
+                <li>Including project/work samples is optional but recommended.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex md:justify-end">
+          <div class="relative w-full md:w-10/12 pl-12 md:pl-0 md:pr-12">
+            <div class="absolute top-1 -left-1.5 md:left-auto md:-right-[1.1rem] w-6 h-6 rounded-full bg-cyan-500 shadow-md shadow-cyan-500/50 border-4 border-gray-900"></div>
+            <div class="card rounded-lg p-5">
+              <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">For Graduates 🎓</h3>
+              <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                <li>Submit any offline internship certificates.</li>
+                <li>Include project/work samples to showcase your experience.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <section id="guidelines" class="bg-gray-950 py-20 border-t border-b border-cyan-800/30">
+    <div class="container mx-auto px-4 max-w-3xl">
+      <h2 class="text-3xl font-bold text-center mb-12 text-white">Recruitment Selection Guidelines</h2>
+      <div class="bg-gray-900 p-8 rounded-xl shadow-2xl border-2 border-cyan-800/50">
+        <ul class="space-y-4 text-gray-300 text-left">
+          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection is based on your skills, project quality, and alignment with our needs.</span></li>
+          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection results are announced shortly.</span></li>
+          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Not selected? Improve your skills and apply again in future cycles.</span></li>
+          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">For sponsorships or paid collaborations, please email us directly.</span></li>
+        </ul>
+      
+        <div class="mt-12 text-center">
+          <h3 class="text-2xl font-semibold mb-4 text-white">Work Mode & Socials</h3>
+          <p class="text-lg text-gray-700 dark:text-cyan-300">🌍 Work Mode: Remote / Work From Home | Flexible Part-Time Opportunities</p>
+          <p class="text-sm text-gray-400 mt-2">Provide your active profiles for GitHub, LinkedIn, Instagram, and your Portfolio when registering.</p>
+          <div class="flex justify-center gap-6 mt-6 text-xl text-gray-400">
+            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">GitHub</a>
+            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">LinkedIn</a>
+            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">Instagram</a>
+            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">Portfolio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-black text-white py-10 border-t border-cyan-500/30">
+    <div class="container mx-auto px-4 text-center">
+  <p>📧 Contact: <a href="{{ url_for('contact') }}" class="text-cyan-300 hover:text-cyan-200 transition">Get in touch</a></p>
+      <p class="mt-2 text-sm text-gray-500">© 2025 IgnividhaTech Developer Recruitment. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const iconSun = btn.querySelector('.icon-sun');
+      const iconMoon = btn.querySelector('.icon-moon');
+
+      function setLabels() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (!iconSun || !iconMoon) return;
+        // Show sun icon in light mode, moon icon in dark mode
+        iconSun.classList.toggle('hidden', !(!isDark));
+        iconMoon.classList.toggle('hidden', !(isDark));
+      }
+
+      setLabels();
+
+      btn.addEventListener('click', () => {
+        const root = document.documentElement;
+        const isDark = root.classList.toggle('dark');
+        try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch(e) {}
+        setLabels();
+      });
+    })();
+  </script>
+  <script>
+    // Toggle solid navbar after scrolling a few pixels
+    (function(){
+      const nav = document.getElementById('mainNav');
+      if (!nav) return;
+        const onScroll = () => {
+          const atTop = window.scrollY <= 8;
+          if (!atTop) {
+            nav.classList.add('scrolled');
+            nav.classList.remove('nav-transparent');
+            nav.classList.remove('light-top');
+          } else {
+            nav.classList.remove('scrolled');
+            nav.classList.add('nav-transparent');
+            // In light mode, show a subtle opaque style at top for readability
+            if (!document.documentElement.classList.contains('dark')) {
+              nav.classList.add('light-top');
+            } else {
+              nav.classList.remove('light-top');
+            }
+          }
+        };
+        // Run once on init to set correct classes
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+  </script>
+</body>
+</html>

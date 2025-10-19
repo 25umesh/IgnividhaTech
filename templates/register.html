@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Recruitment - Registration</title>
+        <script>
+            // Tailwind-like theme init: read stored preference and set `dark` class early to avoid FOUC
+            (function(){ try { const saved = localStorage.getItem('theme'); const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; const isDark = saved ? (saved === 'dark') : prefersDark; if (isDark) document.documentElement.classList.add('dark'); } catch(e){} })();
+        </script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+        <!-- flatpickr for a better date picker UI -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <style>
+            /* Light-mode overrides so the standalone register page follows the site theme */
+            html:not(.dark) body { background: #f6f7fb !important; color: #0f172a !important; }
+            html:not(.dark) .container { background: #ffffff !important; border: 1px solid rgba(15,23,42,0.06) !important; box-shadow: 0 6px 20px rgba(2,6,23,0.04) !important; }
+            html:not(.dark) input, html:not(.dark) select, html:not(.dark) textarea { background: #ffffff !important; color: #0f172a !important; border-color: #e5e7eb !important; }
+            html:not(.dark) .submit-btn { background: linear-gradient(90deg,#efefef,#e6e6e6) !important; color: #0b1220 !important; border: 1px solid rgba(11,18,32,0.06) !important; box-shadow: 0 6px 18px rgba(2,6,23,0.04) !important; }
+            /* Page title styling: green in dark mode, slightly darker green in light mode */
+            .page-title { color: #22c55e; /* emerald-500 */ font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+            html:not(.dark) .page-title { color: #15803d; /* emerald-700 for contrast on light bg */ }
+        </style>
+    <style>
+        .flashes li { list-style: none; margin: 5px 0; padding: 10px; border-radius: 5px; }
+        .flashes .success { background-color: #d4edda; color: #155724; }
+        .flashes .error { background-color: #f8d7da; color: #721c24; }
+        .conditional-fields { display: none; margin-top: 10px; }
+        .project-inputs { margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="page-title">Developer Recruitment  Registration Form</h1>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form id="registrationForm" action="{{ url_for('register') }}" method="POST" enctype="multipart/form-data">
+
+        <!-- Basic Information -->
+        <section class="form-section">
+            <h2>Basic Information</h2>
+            <label for="fullname">Full Name:</label>
+            <input type="text" id="fullname" name="fullname" placeholder="Your full name" required>
+
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" placeholder="example@mail.com" required>
+
+            <label for="contact">Contact Number:</label>
+            <input type="tel" id="contact" name="contact" placeholder="Your contact number" required>
+
+            <label for="dob">Date of Birth:</label>
+            <!-- flatpickr-enhanced text input (replaces native date control) -->
+            <input type="text" id="dob" name="dob" placeholder="YYYY-MM-DD" required style="padding:10px 12px; font-size:16px; border-radius:8px; width:260px;">
+            <p id="ageDisplay" style="margin-top:6px; font-weight:600; color:#ef4444; display:none;">Age: <span id="calculatedAge"></span></p>
+
+            <label>Current Status:</label>
+            <div class="radio-group">
+                <label><input type="radio" name="status" value="Student" required> Student</label>
+                <label><input type="radio" name="status" value="Graduate"> Graduate</label>
+            </div>
+        </section>
+
+        <!-- Work Details -->
+        <section class="form-section">
+            <h2>Work Details</h2>
+            <p>🌍 Remote / Work From Home | ⏰ Flexible Part-Time | 💰 Paid per Project</p>
+            <label>Position Applying For (max 2):</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="position[]" value="Frontend Developer"> Frontend Developer</label>
+                <label><input type="checkbox" name="position[]" value="Backend Developer"> Backend Developer</label>
+                <label><input type="checkbox" name="position[]" value="Full Stack Developer"> Full Stack Developer</label>
+                <label><input type="checkbox" name="position[]" value="App Developer"> App Developer</label>
+            </div>
+        </section>
+
+        <!-- Qualifications & Proofs -->
+        <section class="form-section">
+            <h2>Qualifications & Proofs</h2>
+
+            <label>Offline Hackathon Certificate (at least one required):</label>
+            <input type="file" name="hackathon_cert[]" id="hackathon_cert" multiple required>
+
+            <!-- Student Section -->
+            <div id="studentFields" class="conditional-fields">
+                <label>College ID Card (required for students):</label>
+                <input type="file" name="college_id">
+
+                <label>Number of Projects to upload (optional):</label>
+                <select id="studentProjectCount" name="studentProjectCount">
+                    {% for i in range(0, 11) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <div id="studentProjectsContainer"></div>
+            </div>
+
+            <!-- Graduate Section -->
+            <div id="graduateFields" class="conditional-fields">
+                <label>Number of Projects to upload (mandatory):</label>
+                <select id="graduateProjectCount" name="graduateProjectCount" required>
+                    {% for i in range(0, 11) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <div id="graduateProjectsContainer"></div>
+            </div>
+        </section>
+
+        <!-- Instagram Follow Proof -->
+        <section class="form-section">
+            <h2>Instagram Follow Proof</h2>
+            <p>Please follow our Instagram account and upload a screenshot as proof.</p>
+            <input type="file" name="insta_follow_proof" id="insta_follow_proof" required>
+        </section>
+
+        <!-- Social Media / Portfolio Links -->
+        <section class="form-section">
+            <h2>Social Media / Portfolio Links (Optional)</h2>
+            <label for="github">GitHub:</label>
+            <input type="url" id="github" name="github">
+
+            <label for="linkedin">LinkedIn:</label>
+            <input type="url" id="linkedin" name="linkedin">
+
+            <label for="instagram">Instagram:</label>
+            <input type="url" id="instagram" name="instagram">
+
+            <label for="portfolio">Portfolio / Website:</label>
+            <input type="url" id="portfolio" name="portfolio">
+        </section>
+
+        <!-- Declaration -->
+        <section class="form-section">
+            <label class="declaration">
+                <input type="checkbox" name="declaration" required>
+                I hereby declare that all information provided is true and that I have uploaded valid documents.
+            </label>
+        </section>
+
+        <button type="submit" class="submit-btn">Submit Registration</button>
+    </form>
+</div>
+
+<!-- flatpickr JS and all page scripts -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Age calculation and client-side validation: allowed 18-27 inclusive
+    const dobInput = document.getElementById('dob');
+    const ageEl = document.getElementById('calculatedAge');
+    const ageDisplay = document.getElementById('ageDisplay');
+
+    function calculateAge(dob) {
+        if (!dob) return null;
+        const birth = new Date(dob);
+        if (isNaN(birth.getTime())) return null;
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    }
+
+    function onDobChange() {
+        const val = dobInput.value;
+        const age = calculateAge(val);
+        if (age === null || isNaN(age)) {
+            ageDisplay.style.display = 'none';
+            return;
+        }
+        ageEl.textContent = age;
+        ageDisplay.style.display = 'block';
+        if (age < 18 || age > 27) {
+            ageDisplay.style.color = '#ef4444'; // red
+        } else {
+            ageDisplay.style.color = '#10b981'; // green
+        }
+    }
+
+    // Initialize flatpickr on the DOB input for a full calendar widget
+    if (typeof flatpickr !== 'undefined' && dobInput) {
+        flatpickr(dobInput, {
+            dateFormat: 'Y-m-d',
+            altInput: false,
+            allowInput: true,
+            defaultDate: null,
+            maxDate: new Date(),
+            // Enable fast navigation through years via builtin controls
+            // (flatpickr shows month arrows and allows year typing)
+            onChange: function(selectedDates, dateStr) {
+                onDobChange();
+            }
+        });
+    }
+
+    if (dobInput) dobInput.addEventListener('change', onDobChange);
+
+    // Final client-side check before submit
+    const form = document.getElementById('registrationForm');
+    form.addEventListener('submit', function(e) {
+        const dobVal = dobInput.value;
+        const age = calculateAge(dobVal);
+        if (age === null || isNaN(age)) {
+            e.preventDefault();
+            alert('Please enter a valid Date of Birth.');
+            return;
+        }
+        if (age < 18 || age > 27) {
+            e.preventDefault();
+            alert('Age ' + age + ' is not eligible. Applicants must be between 18 and 27 years old.');
+            return;
+        }
+        // Append a hidden input with the calculated age so server receives it reliably
+        let hidden = document.getElementById('ageHidden');
+        if (!hidden) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'age';
+            hidden.id = 'ageHidden';
+            form.appendChild(hidden);
+        }
+        hidden.value = age;
+    });
+
+    // Field toggles and dynamic project inputs
+    const studentFields = document.getElementById('studentFields');
+    const graduateFields = document.getElementById('graduateFields');
+    const statusRadios = document.querySelectorAll('input[name="status"]');
+
+    function toggleFields() {
+        const selected = document.querySelector('input[name="status"]:checked')?.value;
+        if(selected === 'Student') {
+            studentFields.style.display = 'block';
+            graduateFields.style.display = 'none';
+        } else if(selected === 'Graduate') {
+            studentFields.style.display = 'none';
+            graduateFields.style.display = 'block';
+        }
+    }
+
+    statusRadios.forEach(radio => radio.addEventListener('change', toggleFields));
+    if (studentFields) studentFields.style.display = 'none';
+    if (graduateFields) graduateFields.style.display = 'none';
+
+    function generateProjectInputs(containerId, count) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        for (let i = 1; i <= count; i++) {
+            const projectDiv = document.createElement('div');
+            projectDiv.className = 'project-inputs';
+            projectDiv.innerHTML = `
+                <h4>Project ${i}</h4>
+                <label>Project Link:</label>
+                <input type="url" name="${containerId}_project_link[]" placeholder="GitHub / Portfolio Link" ${containerId === 'graduateProjectsContainer' ? 'required' : ''}>
+                <label>Project Screenshot / File:</label>
+                <input type="file" name="${containerId}_project_file[]" ${containerId === 'graduateProjectsContainer' ? 'required' : ''}>
+            `;
+            container.appendChild(projectDiv);
+        }
+    }
+
+    const studentSelect = document.getElementById('studentProjectCount');
+    const graduateSelect = document.getElementById('graduateProjectCount');
+    if (studentSelect) studentSelect.addEventListener('change', () => {
+        generateProjectInputs('studentProjectsContainer', parseInt(studentSelect.value));
+    });
+    if (graduateSelect) graduateSelect.addEventListener('change', () => {
+        generateProjectInputs('graduateProjectsContainer', parseInt(graduateSelect.value));
+    });
+
+    // Limit checkbox selection to maximum 2 positions
+    const positionCheckboxes = document.querySelectorAll('input[name="position[]"]');
+    positionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const checked = document.querySelectorAll('input[name="position[]"]:checked');
+            if (checked.length > 2) {
+                checkbox.checked = false;
+                alert('You can select a maximum of 2 positions only.');
+            }
+        });
+    });
+</script>
+</body>
+</html>
