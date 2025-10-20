@@ -12,23 +12,36 @@ from flask import (
     abort,
 )
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+
+# Load environment variables from .env file for local development
+load_dotenv()
 
 # Initialize app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 
-# Uploads
-UPLOAD_FOLDER = 'uploads'
+
+# --- DEPLOYMENT-READY STORAGE CONFIGURATION ---
+
+# Use the persistent disk path from the hosting environment, or a local folder '.' if running locally
+DATA_DIR = os.environ.get('RENDER_DISK_PATH', '.')
+
+# 1. Define paths for your data files using the DATA_DIR
+REGISTRATIONS_FILE = os.path.join(DATA_DIR, 'registrations.json')
+QUERIES_FILE = os.path.join(DATA_DIR, 'queries.json')
+
+# 2. Define path for file uploads using the DATA_DIR
+UPLOAD_FOLDER = os.path.join(DATA_DIR, 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the folder if it doesn't exist
+
+# 3. Configure Flask to use the upload folder and set limits
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload
 ALLOWED_EXTENSIONS = {
     'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'docx', 'zip'
 }
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# Simple storage using JSON files
-REGISTRATIONS_FILE = 'registrations.json'
-QUERIES_FILE = 'queries.json'
+# --- END OF STORAGE CONFIGURATION ---
 
 
 def allowed_file(filename):
@@ -130,6 +143,7 @@ def register():
             )
             return redirect(request.url)
 
+
         # Hackathon certificates (required at least one)
         hackathon_cert_files = request.files.getlist('hackathon_cert[]')
         hackathon_certificates = []
@@ -139,6 +153,17 @@ def register():
                 hackathon_certificates.append(stored)
         if not hackathon_certificates:
             flash("Please upload at least one Hackathon certificate.", "error")
+            return redirect(request.url)
+
+        # Internship certificates (up to 10, required for graduates, optional for students)
+        internship_cert_files = request.files.getlist('internship_cert[]')
+        internship_certificates = []
+        for f in internship_cert_files[:10]:
+            stored = save_file(f)
+            if stored:
+                internship_certificates.append(stored)
+        if status == 'Graduate' and not internship_certificates:
+            flash("Please upload at least one Internship certificate (required for graduates).", "error")
             return redirect(request.url)
 
         # College ID (students only)
@@ -203,6 +228,7 @@ def register():
             'instagram_proof': insta_filename,
             'college_id': college_id_filename,
             'hackathon_certificates': hackathon_certificates,
+            'internship_certificates': internship_certificates,
             'social_media': social_media,
         }
         regs.insert(0, registration)

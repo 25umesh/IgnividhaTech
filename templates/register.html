@@ -90,12 +90,36 @@
             <label>Offline Hackathon Certificate (at least one required):</label>
             <input type="file" name="hackathon_cert[]" id="hackathon_cert" multiple required>
 
+                <!-- Internship Certificate Upload -->
+                <label id="internshipLabel" style="font-weight:700;">Internship Certificate (up to 10):</label>
+                <input type="file" name="internship_cert[]" id="internship_cert" multiple max="10">
+
+                <script>
+                // Internship certificate field requirement logic
+                function updateInternshipRequirement() {
+                    const status = document.querySelector('input[name="status"]:checked')?.value;
+                    const internshipInput = document.getElementById('internship_cert');
+                    const internshipLabel = document.getElementById('internshipLabel');
+                    if (status === 'Graduate') {
+                        internshipInput.required = true;
+                        internshipLabel.innerHTML = 'Internship Certificate (at least one required, up to 10):';
+                    } else {
+                        internshipInput.required = false;
+                        internshipLabel.innerHTML = 'Internship Certificate (optional, up to 10):';
+                    }
+                }
+                document.querySelectorAll('input[name="status"]').forEach(radio => {
+                    radio.addEventListener('change', updateInternshipRequirement);
+                });
+                window.addEventListener('DOMContentLoaded', updateInternshipRequirement);
+                </script>
+
             <!-- Student Section -->
             <div id="studentFields" class="conditional-fields">
-                <label>College ID Card (required for students):</label>
+                <label style="color:#15803d; font-weight:700;">College ID Card (required for students):</label>
                 <input type="file" name="college_id">
 
-                <label>Number of Projects to upload (optional):</label>
+                <label style="color:#15803d; font-weight:700;">Number of Projects to upload (optional):</label>
                 <select id="studentProjectCount" name="studentProjectCount">
                     {% for i in range(0, 11) %}
                         <option value="{{ i }}">{{ i }}</option>
@@ -106,7 +130,7 @@
 
             <!-- Graduate Section -->
             <div id="graduateFields" class="conditional-fields">
-                <label>Number of Projects to upload (mandatory):</label>
+                <label style="color:#15803d; font-weight:700;">Number of Projects to upload (mandatory):</label>
                 <select id="graduateProjectCount" name="graduateProjectCount" required>
                     {% for i in range(0, 11) %}
                         <option value="{{ i }}">{{ i }}</option>

@@ -1,0 +1,19 @@
+# Environment variables - contains secrets!
+.env
+
+# Python virtual environment folder
+.venv/
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Local database file
+data.db
+
+# Local uploads folder
+uploads/
+
+# Old JSON data files
+*.json

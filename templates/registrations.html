@@ -233,6 +233,30 @@
                     </div>
                     {% endif %}
 
+
+                    {% if reg.internship_certificates|length > 0 %}
+                    <div class="photo-section">
+                        <p class="text-cyan-400 text-sm font-semibold mb-3">💼 Internship Certificates</p>
+                        <div class="flex flex-wrap gap-4">
+                            {% for cert in reg.internship_certificates %}
+                                {% set cert_ext = cert.split('.')[-1].lower() %}
+                                {% if cert_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                <div>
+                                    <img src="{{ url_for('uploaded_file', filename=cert) }}" 
+                                         alt="Internship Certificate {{ loop.index }}" 
+                                         class="image-thumbnail"
+                                         onclick="openModal(this.src, '{{ reg.fullname }} - Internship Certificate {{ loop.index }}')">
+                                </div>
+                                {% else %}
+                                <div>
+                                    <a href="{{ url_for('uploaded_file', filename=cert) }}" target="_blank" class="inline-flex items-center bg-gray-800 hover:bg-gray-700 text-cyan-400 px-4 py-2 rounded-lg text-sm font-medium transition">📄 {{ cert_ext.upper() }} File</a>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if reg.hackathon_certificates|length > 0 %}
                     <div class="photo-section">
                         <p class="text-cyan-400 text-sm font-semibold mb-3">🏅 Hackathon Certificates</p>
