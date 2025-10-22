@@ -31,7 +31,7 @@
 </head>
 <body>
 <div class="container">
-    <h1 class="page-title">Developer Recruitment  Registration Form</h1>
+    <h1 class="page-title">Developer Recruitment Registration Form</h1>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -68,12 +68,17 @@
                 <label><input type="radio" name="status" value="Student" required> Student</label>
                 <label><input type="radio" name="status" value="Graduate"> Graduate</label>
             </div>
+
+                        <label style="margin-top:12px; font-weight:700;">Profile Photo <span style="color:#ef4444">*</span></label>
+                        <input type="file" name="profile_photo" id="profile_photo" accept="image/*" required>
+                        <div id="profilePreviewWrap" style="margin-top:8px; display:none;">
+                            <img id="profilePreview" alt="Profile preview" style="width:96px; height:96px; object-fit:cover; border-radius:9999px; border:2px solid #e5e7eb;" />
+                        </div>
         </section>
 
         <!-- Work Details -->
         <section class="form-section">
             <h2>Work Details</h2>
-            <p>🌍 Remote / Work From Home | ⏰ Flexible Part-Time | 💰 Paid per Project</p>
             <label>Position Applying For (max 2):</label>
             <div class="checkbox-group">
                 <label><input type="checkbox" name="position[]" value="Frontend Developer"> Frontend Developer</label>
@@ -81,13 +86,42 @@
                 <label><input type="checkbox" name="position[]" value="Full Stack Developer"> Full Stack Developer</label>
                 <label><input type="checkbox" name="position[]" value="App Developer"> App Developer</label>
             </div>
+            <script>
+            (function(){
+                const form = document.getElementById('registrationForm');
+                const boxes = Array.from(document.querySelectorAll('input[name="position[]"]'));
+                const enforceLimits = () => {
+                    const selected = boxes.filter(b => b.checked);
+                    const count = selected.length;
+                    // Disable remaining if 2 selected
+                    boxes.forEach(b => {
+                        if (!b.checked) b.disabled = count >= 2;
+                        else b.disabled = false;
+                    });
+                };
+                boxes.forEach(b => b.addEventListener('change', enforceLimits));
+                form.addEventListener('submit', (e) => {
+                    const count = boxes.filter(b => b.checked).length;
+                    if (count < 1 || count > 2) {
+                        // Use native validation without adding visible inline text
+                        boxes[0].setCustomValidity('Please select at least 1 and at most 2 positions.');
+                        boxes[0].reportValidity();
+                        boxes[0].setCustomValidity('');
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+                // Initialize on load
+                enforceLimits();
+            })();
+            </script>
         </section>
 
         <!-- Qualifications & Proofs -->
         <section class="form-section">
             <h2>Qualifications & Proofs</h2>
 
-            <label>Offline Hackathon Certificate (at least one required):</label>
+            <label>Hackathon Certificate (at least one required):</label>
             <input type="file" name="hackathon_cert[]" id="hackathon_cert" multiple required>
 
                 <!-- Internship Certificate Upload -->
@@ -147,16 +181,30 @@
             <input type="file" name="insta_follow_proof" id="insta_follow_proof" required>
         </section>
 
+        <!-- LinkedIn Follow Proof -->
+        <section class="form-section">
+            <h2>LinkedIn Follow Proof</h2>
+            <p>If you follow our LinkedIn page, you can upload a screenshot as proof.</p>
+            <input type="file" name="linkedin_follow_proof" id="linkedin_follow_proof">
+        </section>
+
+        <!-- Payment Proof -->
+        <section class="form-section">
+            <h2>Payment Proof</h2>
+            <p>Please upload a screenshot or receipt of your payment (image or PDF).</p>
+            <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf" required>
+        </section>
+
         <!-- Social Media / Portfolio Links -->
         <section class="form-section">
-            <h2>Social Media / Portfolio Links (Optional)</h2>
-            <label for="github">GitHub:</label>
-            <input type="url" id="github" name="github">
+            <h2>Social Media / Portfolio Links (Mandatory)</h2>
+            <label for="github">GitHub <span style="color:#ef4444">*</span>:</label>
+            <input type="url" id="github" name="github" required>
 
-            <label for="linkedin">LinkedIn:</label>
-            <input type="url" id="linkedin" name="linkedin">
+            <label for="linkedin">LinkedIn <span style="color:#ef4444">*</span>:</label>
+            <input type="url" id="linkedin" name="linkedin" required>
 
-            <label for="instagram">Instagram:</label>
+            <label for="instagram">Instagram <span style="color:#ef4444">*</span>:</label>
             <input type="url" id="instagram" name="instagram">
 
             <label for="portfolio">Portfolio / Website:</label>
@@ -287,7 +335,7 @@
             projectDiv.innerHTML = `
                 <h4>Project ${i}</h4>
                 <label>Project Link:</label>
-                <input type="url" name="${containerId}_project_link[]" placeholder="GitHub / Portfolio Link" ${containerId === 'graduateProjectsContainer' ? 'required' : ''}>
+                <input type="url" name="${containerId}_project_link[]" placeholder="Add a link to your project that anyone can view" ${containerId === 'graduateProjectsContainer' ? 'required' : ''}>
                 <label>Project Screenshot / File:</label>
                 <input type="file" name="${containerId}_project_file[]" ${containerId === 'graduateProjectsContainer' ? 'required' : ''}>
             `;
@@ -315,6 +363,22 @@
             }
         });
     });
+
+    // Profile photo live preview
+    const profileInput = document.getElementById('profile_photo');
+    if (profileInput) {
+        profileInput.addEventListener('change', () => {
+            const file = profileInput.files && profileInput.files[0];
+            const wrap = document.getElementById('profilePreviewWrap');
+            const img = document.getElementById('profilePreview');
+            if (file && wrap && img) {
+                img.src = URL.createObjectURL(file);
+                wrap.style.display = 'block';
+            } else if (wrap) {
+                wrap.style.display = 'none';
+            }
+        });
+    }
 </script>
 </body>
 </html>

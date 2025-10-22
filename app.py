@@ -10,6 +10,7 @@ from flask import (
     url_for,
     send_from_directory,
     abort,
+    jsonify,
 )
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
@@ -24,16 +25,21 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 # --- DEPLOYMENT-READY STORAGE CONFIGURATION ---
 
-# Use the persistent disk path from the hosting environment, or a local folder '.' if running locally
+# Use the persistent disk path from the hosting environment,
+# or a local folder '.' if running locally
 DATA_DIR = os.environ.get('RENDER_DISK_PATH', '.')
 
 # 1. Define paths for your data files using the DATA_DIR
 REGISTRATIONS_FILE = os.path.join(DATA_DIR, 'registrations.json')
 QUERIES_FILE = os.path.join(DATA_DIR, 'queries.json')
+UPDATES_FILE = os.path.join(DATA_DIR, 'updates.json')
 
 # 2. Define path for file uploads using the DATA_DIR
 UPLOAD_FOLDER = os.path.join(DATA_DIR, 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the folder if it doesn't exist
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True,
+)  # Create the folder if it doesn't exist
 
 # 3. Configure Flask to use the upload folder and set limits
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -72,7 +78,13 @@ def _load_list(path):
         return []
     try:
         with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Backfill missing review_status as 'pending'
+            if isinstance(data, list):
+                for r in data:
+                    if isinstance(r, dict) and 'review_status' not in r:
+                        r['review_status'] = 'pending'
+            return data
     except Exception:
         return []
 
@@ -85,14 +97,66 @@ def _save_list(path, data_list):
 def _require_admin():
     expected = os.environ.get('ADMIN_TOKEN')
     if expected:
-        token = request.args.get('token')
+        token = (
+            request.args.get('token')
+            or request.form.get('token')
+            or request.headers.get('X-Admin-Token')
+        )
         if token != expected:
             abort(403)
 
 
+def _load_updates_list():
+    """Load updates from UPDATES_FILE or legacy notifications.json.
+    Returns a list of strings, falling back to a default if empty.
+    """
+    data = []
+    try:
+        if os.path.exists(UPDATES_FILE):
+            with open(UPDATES_FILE, 'r', encoding='utf-8') as f:
+                raw = json.load(f)
+                if isinstance(raw, list):
+                    for item in raw:
+                        if isinstance(item, dict):
+                            msg = (
+                                item.get('message')
+                                or item.get('text')
+                                or item.get('title')
+                            )
+                            if msg:
+                                data.append(str(msg))
+                        else:
+                            data.append(str(item))
+        else:
+            legacy_path = os.path.join(DATA_DIR, 'notifications.json')
+            if os.path.exists(legacy_path):
+                with open(legacy_path, 'r', encoding='utf-8') as f:
+                    raw = json.load(f)
+                    if isinstance(raw, list):
+                        data = [str(x) for x in raw]
+    except Exception:
+        data = []
+
+    if not data:
+        data = ['Registration will open soon.']
+    return data
+
+
 @app.route('/')
 def home():
-    return render_template('dashboard.html')
+    update_list = _load_updates_list()
+    update = update_list[0] if update_list else 'Registration will open soon.'
+    return render_template(
+        'dashboard.html',
+        update=update,
+        updates=update_list,
+    )
+
+
+@app.route('/api/updates')
+def api_updates():
+    """Simple API to verify what updates the server sees."""
+    return jsonify({'updates': _load_updates_list()})
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -143,6 +207,10 @@ def register():
             )
             return redirect(request.url)
 
+        # Enforce 1-2 positions selected
+        if len(positions) < 1 or len(positions) > 2:
+            flash("Please select at least 1 and at most 2 positions.", "error")
+            return redirect(request.url)
 
         # Hackathon certificates (required at least one)
         hackathon_cert_files = request.files.getlist('hackathon_cert[]')
@@ -155,7 +223,8 @@ def register():
             flash("Please upload at least one Hackathon certificate.", "error")
             return redirect(request.url)
 
-        # Internship certificates (up to 10, required for graduates, optional for students)
+        # Internship certificates (up to 10). Required for graduates,
+        # optional for students.
         internship_cert_files = request.files.getlist('internship_cert[]')
         internship_certificates = []
         for f in internship_cert_files[:10]:
@@ -163,7 +232,13 @@ def register():
             if stored:
                 internship_certificates.append(stored)
         if status == 'Graduate' and not internship_certificates:
-            flash("Please upload at least one Internship certificate (required for graduates).", "error")
+            flash(
+                (
+                    "Please upload at least one Internship certificate "
+                    "(required for graduates)."
+                ),
+                "error",
+            )
             return redirect(request.url)
 
         # College ID (students only)
@@ -203,13 +278,40 @@ def register():
             flash("Please upload Instagram follow proof.", "error")
             return redirect(request.url)
 
-        # Socials
+        # LinkedIn proof (required)
+        linkedin_filename = save_file(
+            request.files.get('linkedin_follow_proof')
+        )
+        if not linkedin_filename:
+            flash("Please upload LinkedIn follow proof.", "error")
+            return redirect(request.url)
+
+        # Payment proof (required)
+        payment_proof_filename = save_file(request.files.get('payment_proof'))
+        if not payment_proof_filename:
+            flash("Please upload payment proof.", "error")
+            return redirect(request.url)
+
+        # Profile photo (optional)
+        profile_photo_filename = save_file(request.files.get('profile_photo'))
+
+        # Socials (mandatory: GitHub, LinkedIn, Instagram)
         social_media = {
-            'github': request.form.get('github', ''),
-            'linkedin': request.form.get('linkedin', ''),
-            'instagram': request.form.get('instagram', ''),
-            'portfolio': request.form.get('portfolio', ''),
+            'github': request.form.get('github', '').strip(),
+            'linkedin': request.form.get('linkedin', '').strip(),
+            'instagram': request.form.get('instagram', '').strip(),
+            'portfolio': request.form.get('portfolio', '').strip(),
         }
+        if (
+            not social_media['github']
+            or not social_media['linkedin']
+            or not social_media['instagram']
+        ):
+            flash(
+                "GitHub, LinkedIn, and Instagram profile links are required.",
+                "error",
+            )
+            return redirect(request.url)
 
         # Load existing, assign id, save
         regs = _load_list(REGISTRATIONS_FILE)
@@ -222,10 +324,16 @@ def register():
             'contact': contact,
             'age': age,
             'status': status,
+            # Admin review status options:
+            # 'pending' | 'selected' | 'rejected' | 'paused'
+            'review_status': 'pending',
             'positions': positions,
             'project_links': project_links,
             'project_files': project_files,
             'instagram_proof': insta_filename,
+            'linkedin_proof': linkedin_filename,
+            'payment_proof': payment_proof_filename,
+            'profile_photo': profile_photo_filename,
             'college_id': college_id_filename,
             'hackathon_certificates': hackathon_certificates,
             'internship_certificates': internship_certificates,
@@ -267,8 +375,91 @@ def contact():
 @app.route('/admin/registrations')
 def view_registrations():
     _require_admin()
-    regs = _load_list(REGISTRATIONS_FILE)
+    # Show only pending entries on the main registrations page
+    regs = [
+        r for r in _load_list(REGISTRATIONS_FILE)
+        if r.get('review_status') == 'pending'
+    ]
     return render_template('registrations.html', registrations=regs)
+
+
+def _set_review_status(reg_id: int, new_status: str):
+    regs = _load_list(REGISTRATIONS_FILE)
+    updated = False
+    for r in regs:
+        if r.get('id') == reg_id:
+            r['review_status'] = new_status
+            updated = True
+            break
+    if updated:
+        _save_list(REGISTRATIONS_FILE, regs)
+    return updated
+
+
+@app.route('/admin/registrations/select/<int:reg_id>', methods=['POST'])
+def select_registration(reg_id):
+    _require_admin()
+    _set_review_status(reg_id, 'selected')
+    flash('Marked as Selected.', 'success')
+    token = request.args.get('token') or request.form.get('token')
+    next_url = request.form.get('next') or request.args.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect(url_for('view_selected', token=token))
+
+
+@app.route('/admin/registrations/reject/<int:reg_id>', methods=['POST'])
+def reject_registration(reg_id):
+    _require_admin()
+    _set_review_status(reg_id, 'rejected')
+    flash('Marked as Rejected.', 'success')
+    token = request.args.get('token') or request.form.get('token')
+    next_url = request.form.get('next') or request.args.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect(url_for('view_rejected', token=token))
+
+
+@app.route('/admin/registrations/pause/<int:reg_id>', methods=['POST'])
+def pause_registration(reg_id):
+    _require_admin()
+    _set_review_status(reg_id, 'paused')
+    flash('Moved to Paused.', 'success')
+    token = request.args.get('token') or request.form.get('token')
+    next_url = request.form.get('next') or request.args.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect(url_for('view_paused', token=token))
+
+
+@app.route('/admin/selected')
+def view_selected():
+    _require_admin()
+    regs = [
+        r for r in _load_list(REGISTRATIONS_FILE)
+        if r.get('review_status') == 'selected'
+    ]
+    return render_template('selected.html', registrations=regs)
+
+
+@app.route('/admin/rejected')
+def view_rejected():
+    _require_admin()
+    regs = [
+        r for r in _load_list(REGISTRATIONS_FILE)
+        if r.get('review_status') == 'rejected'
+    ]
+    return render_template('rejected.html', registrations=regs)
+
+
+@app.route('/admin/paused')
+def view_paused():
+    _require_admin()
+    regs = [
+        r for r in _load_list(REGISTRATIONS_FILE)
+        if r.get('review_status') == 'paused'
+    ]
+    return render_template('paused.html', registrations=regs)
 
 
 @app.route('/admin/registrations/delete/<int:reg_id>', methods=['POST'])
@@ -278,7 +469,11 @@ def delete_registration(reg_id):
     new_regs = [r for r in regs if r.get('id') != reg_id]
     _save_list(REGISTRATIONS_FILE, new_regs)
     flash('Registration deleted successfully!', 'success')
-    return redirect(url_for('view_registrations'))
+    token = request.args.get('token') or request.form.get('token')
+    next_url = request.form.get('next') or request.args.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect(url_for('view_registrations', token=token))
 
 
 @app.route('/admin/queries')
@@ -294,4 +489,8 @@ def uploaded_file(filename):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)),
+        debug=True,
+    )

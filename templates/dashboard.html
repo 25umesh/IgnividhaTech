@@ -127,6 +127,42 @@
             left: 14px;
         }
     }
+   /* Update sidebar scroll animation
+     Scroll across the full container height: from bottom edge to top edge. */
+    @keyframes updateScroll {
+      0% {
+        transform: translateY(var(--updateTickerHeight, 80px)); /* start below container */
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        transform: translateY(calc(-1 * var(--updateTickerHeight, 80px))); /* move past top edge */
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(calc(-1 * var(--updateTickerHeight, 80px))); /* end above */
+        opacity: 0;
+      }
+    }
+    .update-scroll-text {
+      animation: updateScroll var(--updateTickerDuration, 16s) linear infinite;
+      display: block;
+      position: absolute;
+      top: 0; /* anchor to top so transforms measure from the top edge */
+      left: 0;
+      right: 0;
+      will-change: transform;
+    }
+    /* Allow a fixed, scalable height for the update container; it won't exceed this */
+    .update-scroll-container {
+      height: var(--updateTickerHeight, 80px);
+      max-height: var(--updateTickerHeight, 80px);
+    }
+    .update-scroll-container:hover .update-scroll-text {
+      animation-play-state: paused;
+    }
   /* Default dark-mode text color */
   html.dark body { color: #e5e7eb; }
   /* Stronger light-mode colors for the About section to avoid accidental fade */
@@ -156,6 +192,14 @@
   /* Stronger light-mode colors for the Positions section (card text) */
   html:not(.dark) #positions .card h4 { color: #0f172a !important; }
   html:not(.dark) #positions .card p { color: #374151 !important; }
+  /* Make the Positions section background white in light mode and adjust borders */
+  html:not(.dark) #positions { 
+    background-color: #ffffff !important; 
+    border-top: 1px solid rgba(15,23,42,0.06) !important; 
+    border-bottom: 1px solid rgba(15,23,42,0.06) !important; 
+  }
+  /* Ensure the section heading is readable on white */
+  html:not(.dark) #positions h2 { color: #0f172a !important; }
     /* Navbar behaviour: transparent at page-top (overlay the hero) and solid on scroll.
        Use high-specificity rules so the visual state is consistent across browsers. */
     .nav-transparent {
@@ -230,14 +274,30 @@
 
   /* Slight shadow tweak for register button when navbar is transparent */
   .nav-transparent #register-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+
+  /* Light-mode background image for the top hero section */
+  html:not(.dark) .hero-bg {
+    background-image: url('{{ url_for('static', filename='background.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  /* Dark-mode background image for the top hero section */
+  html.dark .hero-bg {
+    background-image: url('{{ url_for('static', filename='background.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  /* (Removed duplicate @keyframes updateScroll to avoid conflicts) */
   </style>
 </head>
 <body>
 
-  <nav id="mainNav" class="sticky top-0 z-50 nav-transparent backdrop-blur-md shadow-sm">
+  <nav id="mainNav" class="sticky top-0 z-50 nav-transparent shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-3">
-        <h1 class="brand text-2xl font-extrabold text-gray-900 dark:text-white tracking-wider">IgnividhaTech</h1>
+        <h1 class="brand text-2xl font-extrabold text-gray-900 dark:text-white tracking-wider"><span style="font-family: Georgia, serif; font-weight: 900;">I</span>gnividhaTech</h1>
         <span class="tagline hidden sm:inline text-base md:text-lg font-semibold text-gray-800 dark:text-white">| Developer Recruitment</span>
       </div>
   <div class="flex items-center gap-6 md:gap-8">
@@ -245,6 +305,7 @@
         <a href="#positions" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Positions</a>
         <a href="#qualifications" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Qualifications</a>
         <a href="#guidelines" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Guidelines</a>
+  <a href="#" id="openUpdateSidebar" class="text-sm font-medium text-cyan-600 dark:text-cyan-400 header-link hidden md:inline whitespace-nowrap">Updates</a>
 
       <button id="themeToggle" type="button"
            class="hidden md:inline-flex items-center justify-center h-10 gap-2 px-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition"
@@ -266,11 +327,11 @@
     </div>
   </nav>
 
-  <section class="bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-900 h-[70vh] md:h-[75vh] flex items-center justify-center relative overflow-hidden">
+  <section class="hero-bg bg-white dark:bg-[#0b1220] h-[70vh] md:h-[75vh] flex items-center justify-center relative overflow-hidden">
     <div class="text-center px-4 max-w-4xl z-10 hero-content">
       <span class="text-sm font-medium bg-red-600 text-white px-3 py-1 rounded-full mb-3 inline-block shadow-md">PAID OPPORTUNITY</span>
       <h1 class="text-6xl md:text-8xl font-extrabold mb-4 tracking-wider hero-title">
-        IgnividhaTech
+        <span style="font-family: Georgia, serif; font-weight: 900;">I</span>gnividhaTech
       </h1>
       <h2 class="text-4xl md:text-5xl font-semibold mb-6 text-gray-900 dark:text-white tracking-wide">
         Developer Recruitment
@@ -286,7 +347,7 @@
         Register Now
       </a>
     </div>
-  <div class="absolute inset-0 z-0 opacity-25" style="background: radial-gradient(circle at 50% 10%, rgba(0,0,0,0.45) 0%, transparent 70%);"></div>
+  <div class="absolute inset-0 z-0 opacity-0 dark:opacity-15" style="background: radial-gradient(circle at 50% 10%, rgba(0,0,0,0.45) 0%, transparent 70%);"></div>
   </section>
 
   <section id="about" class="container mx-auto px-4 py-20 max-w-6xl">
@@ -386,13 +447,29 @@
     </div>
   </section>
 
+  <!-- Update Sidebar Modal (hidden by default) -->
+  <div id="updateOverlay" class="fixed inset-0 bg-black/40 z-40 hidden" aria-hidden="true"></div>
+
+  <aside id="updateSidebar" role="dialog" aria-modal="true" aria-hidden="true" class="fixed left-4 top-20 w-80 bg-white dark:bg-gray-900 shadow-2xl z-50 transition-transform duration-300 rounded-xl border-4 border-red-500" style="transform: translateX(-120%);">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-red-500 rounded-tr-xl">
+      <span class="text-lg font-semibold text-white">Latest Updates</span>
+      <button onclick="closeUpdateSidebar()" class="text-white text-2xl font-bold">&times;</button>
+    </div>
+      <div class="px-6 py-5">
+  <div class="update-scroll-container relative overflow-hidden w-full" style="--updateTickerHeight: 460px; --updateTickerDuration: 16s;">
+          <div id="updateText" class="update-scroll-text w-full px-2 text-gray-800 dark:text-gray-200 font-semibold text-base" style="white-space: nowrap;">
+            {{ update }}
+          </div>
+        </div>
+      </div>
+    </aside>
+
   <section id="guidelines" class="bg-gray-950 py-20 border-t border-b border-cyan-800/30">
     <div class="container mx-auto px-4 max-w-3xl">
       <h2 class="text-3xl font-bold text-center mb-12 text-white">Recruitment Selection Guidelines</h2>
       <div class="bg-gray-900 p-8 rounded-xl shadow-2xl border-2 border-cyan-800/50">
         <ul class="space-y-4 text-gray-300 text-left">
           <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection is based on your skills, project quality, and alignment with our needs.</span></li>
-          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection results are announced shortly.</span></li>
           <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Not selected? Improve your skills and apply again in future cycles.</span></li>
           <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">For sponsorships or paid collaborations, please email us directly.</span></li>
         </ul>
@@ -418,6 +495,8 @@
       <p class="mt-2 text-sm text-gray-500">© 2025 IgnividhaTech Developer Recruitment. All rights reserved.</p>
     </div>
   </footer>
+
+  <!-- (Removed duplicate sidebar block) -->
 
   <script>
     (function(){
@@ -469,6 +548,97 @@
         // Run once on init to set correct classes
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+  </script>
+  <script>
+    // Update Sidebar functionality (toggle overlay and aria-hidden)
+    (function(){
+      const updateBtn = document.getElementById('openUpdateSidebar');
+      const sidebar = document.getElementById('updateSidebar');
+      const overlay = document.getElementById('updateOverlay');
+  const updateEl = document.getElementById('updateText');
+  const updatesData = {{ updates|tojson }};
+  let updateIndex = 0;
+  const PAUSE_MS = 0; // not used with infinite animation
+  let nextTimer = null;
+  const container = document.querySelector('.update-scroll-container');
+
+      function startTicker() {
+        if (!updateEl || !Array.isArray(updatesData) || updatesData.length === 0) return;
+        // Set current text
+        updateEl.textContent = updatesData[updateIndex % updatesData.length];
+        // Ensure starting transform is at the bottom for visual continuity
+        const h = getComputedStyle(container).getPropertyValue('--updateTickerHeight').trim() || '80px';
+        updateEl.style.transform = `translateY(${h})`;
+      }
+      if (!updateBtn || !sidebar) return;
+
+      function openSidebar() {
+        // move panel into view — left: 1rem (left-4) + translateX(0)
+        sidebar.style.transform = 'translateX(0)';
+        sidebar.setAttribute('aria-hidden', 'false');
+        if (overlay) overlay.classList.remove('hidden');
+        if (overlay) overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        // Restart the ticker animation from the bottom on open
+        startTicker();
+      }
+
+      function closeSidebar() {
+        // move panel fully off-screen (a bit more than -100% to avoid visible edge)
+        sidebar.style.transform = 'translateX(-120%)';
+        sidebar.setAttribute('aria-hidden', 'true');
+        if (overlay) overlay.classList.add('hidden');
+        if (overlay) overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      updateBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openSidebar();
+      });
+
+      window.closeUpdateSidebar = closeSidebar;
+
+      // Close sidebar when clicking overlay or outside
+      if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+      }
+
+      document.addEventListener('mousedown', function(e) {
+        if (!sidebar.contains(e.target) && !overlay.contains(e.target) && sidebar.getAttribute('aria-hidden') === 'false') {
+          closeSidebar();
+        }
+      });
+
+      // Close sidebar on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.getAttribute('aria-hidden') === 'false') {
+          closeSidebar();
+        }
+      });
+
+      // Cycle through updates on each animation iteration (infinite loop)
+      if (updateEl && Array.isArray(updatesData) && updatesData.length > 0) {
+        updateIndex = 0;
+        startTicker();
+        updateEl.addEventListener('animationiteration', () => {
+          updateIndex = (updateIndex + 1) % updatesData.length;
+          startTicker();
+        });
+
+        // Respect pause on hover even during the waiting phase
+        if (container) {
+          container.addEventListener('mouseenter', () => {
+            if (nextTimer) {
+              clearTimeout(nextTimer);
+              nextTimer = null;
+            }
+          });
+          container.addEventListener('mouseleave', () => {});
+        }
+      }
     })();
   </script>
 </body>
