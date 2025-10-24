@@ -222,10 +222,16 @@
                     <button type="button" id="qrClose" title="Close" style="background:transparent; border:0; color:#94a3b8; font-size:22px; cursor:pointer;">×</button>
                 </div>
                 <p style="font-size:14px; color:#94a3b8; margin:0 0 12px;">Scan the QR code below to complete the payment. After payment, tap Done to upload your proof.</p>
-                <div style="display:flex; justify-content:center;">
-                    <img src="{{ url_for('static', filename='Qr.jpg') }}" alt="Payment QR" style="max-width:100%; width:320px; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:#0f172a;" onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
+                <!-- Fee breakdown box -->
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.10); border-radius:12px; padding:12px; margin:0 0 12px;">
+                    <div style="font-weight:800; color:#e2e8f0; font-size:14px;">Total Registration Fee: ₹125</div>
+                    <div style="color:#a3b3c6; font-size:13px; margin-top:4px;">Refundable Amount: ₹100 (returned if not selected)</div>
+                    <div style="color:#a3b3c6; font-size:13px;">Verification Fee: ₹25 (non-refundable, for document and profile verification)</div>
                 </div>
-                <div id="qrFallback" style="display:none; text-align:center; color:#f59e0b; font-size:14px; margin-top:8px;">QR image not found. Please add Qr.jpg inside the static folder.</div>
+                <div style="display:flex; justify-content:center;">
+                        <img src="{{ url_for('static', filename='qr.jpg') }}" alt="Payment QR" style="max-width:100%; width:320px; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:#0f172a;" onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
+                </div>
+                <div id="qrFallback" style="display:none; text-align:center; color:#f59e0b; font-size:14px; margin-top:8px;">QR image not found. Please add <code>QR.jpg</code> inside the <code>static</code> folder.</div>
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
                     <button type="button" id="qrDone" class="submit-btn">Done</button>
                 </div>
