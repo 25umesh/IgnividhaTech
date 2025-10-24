@@ -404,7 +404,7 @@ def register():
         flash("Registration submitted successfully!", "success")
         return redirect(url_for('register'))
 
-    return render_template('register.html')
+    return render_template('register.html', site_content=_load_site_content())
 
 
 @app.route('/contact', methods=['GET', 'POST'])
@@ -428,7 +428,7 @@ def contact():
         flash("Your query has been submitted successfully!", "success")
         return redirect(url_for('contact'))
 
-    return render_template('contact.html')
+    return render_template('contact.html', site_content=_load_site_content())
 
 
 # --- SIMPLE SESSION-BASED ADMIN AUTH ---
@@ -516,6 +516,8 @@ def admin_dashboard():
         admin_username=session.get('admin_username'),
         current_username=_load_admin_credentials().get('username'),
         site_content=_load_site_content(),
+        positions=POSITIONS,
+        mail_templates=_load_mail_templates(),
     )
 
 
@@ -581,18 +583,25 @@ def _default_site_content():
         },
         'about': {
             'leftText': (
-                'Join our remote developer team on a project-by-project basis. '
-                'Earn stipends for completed work, not a fixed salary.'
+                'Join our remote developer team on a project-by-project '
+                'basis. Earn stipends for completed work, not a fixed salary.'
             ),
             'rightText': (
-                'Gain real-world experience on exciting projects with flexible hours. '
-                'Work from anywhere and meet project deadlines to build your portfolio.'
+                'Gain real-world experience on exciting projects with '
+                'flexible hours. Work from anywhere and meet project '
+                'deadlines to build your portfolio.'
             ),
         },
         'positions': {
-            'frontend': 'Build responsive user interfaces and web applications.',
-            'backend': 'Design APIs, manage databases, and write server-side logic.',
-            'fullstack': 'Handle both client-side and server-side infrastructure.',
+            'frontend': (
+                'Build responsive user interfaces and web applications.'
+            ),
+            'backend': (
+                'Design APIs, manage databases, and write server-side logic.'
+            ),
+            'fullstack': (
+                'Handle both client-side and server-side infrastructure.'
+            ),
             'app': 'Develop Android/iOS apps focused on performance.',
         },
         'qualifications': {
@@ -609,6 +618,34 @@ def _default_site_content():
                 'Include project/work samples to showcase your experience.',
             ],
         },
+        # Registration page configurable content
+        'registerPage': {
+            'title': 'Developer Recruitment Registration Form',
+            'intro': (
+                'Fill the form carefully. Eligibility: Age 18–27; '
+                'select up to 2 positions; upload the required proofs.'
+            ),
+            'fee': {
+                'total': '₹125',
+                'refundable': '₹100',
+                'verification': '₹25',
+                'note': (
+                    '₹100 refundable if not selected; ₹25 non-refundable '
+                    'verification fee.'
+                )
+            }
+        },
+        # Contact page configurable content
+        'contactPage': {
+            'title': 'Contact Us',
+            'subtitle': (
+                'Get in touch with IgnividhaTech or send us your query'
+            ),
+            'companyName': 'IgnividhaTech',
+            'email': 'tatvatech2225@gmail.com',
+            'location': 'Hyderabad, India',
+            'workMode': 'Remote / Work From Home',
+        },
     }
 
 
@@ -619,6 +656,7 @@ def _load_site_content():
                 data = json.load(f)
                 # Merge with defaults to ensure keys exist
                 base = _default_site_content()
+
                 def merge(a, b):
                     if isinstance(a, dict) and isinstance(b, dict):
                         out = dict(a)
@@ -643,10 +681,22 @@ def admin_save_site_content():
     _require_admin()
     content = _load_site_content()
     # Hero
-    content['hero']['badge'] = (request.form.get('hero_badge') or '').strip() or content['hero']['badge']
-    content['hero']['title'] = (request.form.get('hero_title') or '').strip() or content['hero']['title']
-    content['hero']['subtitle'] = (request.form.get('hero_subtitle') or '').strip() or content['hero']['subtitle']
-    content['hero']['ctaLabel'] = (request.form.get('cta_label') or '').strip() or content['hero']['ctaLabel']
+    content['hero']['badge'] = (
+        (request.form.get('hero_badge') or '').strip()
+        or content['hero']['badge']
+    )
+    content['hero']['title'] = (
+        (request.form.get('hero_title') or '').strip()
+        or content['hero']['title']
+    )
+    content['hero']['subtitle'] = (
+        (request.form.get('hero_subtitle') or '').strip()
+        or content['hero']['subtitle']
+    )
+    content['hero']['ctaLabel'] = (
+        (request.form.get('cta_label') or '').strip()
+        or content['hero']['ctaLabel']
+    )
     link = (request.form.get('cta_link') or '').strip()
     if link:
         content['hero']['ctaLink'] = link
@@ -680,10 +730,64 @@ def admin_save_site_content():
     qs = (request.form.get('qual_students') or '').strip()
     qg = (request.form.get('qual_graduates') or '').strip()
     if qs:
-        q['students'] = [line.strip() for line in qs.splitlines() if line.strip()]
+        q['students'] = [
+            line.strip()
+            for line in qs.splitlines()
+            if line.strip()
+        ]
     if qg:
-        q['graduates'] = [line.strip() for line in qg.splitlines() if line.strip()]
+        q['graduates'] = [
+            line.strip()
+            for line in qg.splitlines()
+            if line.strip()
+        ]
     content['qualifications'] = q
+
+    # Registration Page
+    rp = content.get('registerPage', {})
+    r_title = (request.form.get('reg_title') or '').strip()
+    r_intro = (request.form.get('reg_intro') or '').strip()
+    if r_title:
+        rp['title'] = r_title
+    if r_intro:
+        rp['intro'] = r_intro
+    fee = rp.get('fee', {})
+    f_total = (request.form.get('fee_total') or '').strip()
+    f_ref = (request.form.get('fee_refundable') or '').strip()
+    f_ver = (request.form.get('fee_verification') or '').strip()
+    f_note = (request.form.get('fee_note') or '').strip()
+    if f_total:
+        fee['total'] = f_total
+    if f_ref:
+        fee['refundable'] = f_ref
+    if f_ver:
+        fee['verification'] = f_ver
+    if f_note:
+        fee['note'] = f_note
+    rp['fee'] = fee
+    content['registerPage'] = rp
+
+    # Contact Page
+    cp = content.get('contactPage', {})
+    c_title = (request.form.get('contact_title') or '').strip()
+    c_sub = (request.form.get('contact_subtitle') or '').strip()
+    c_company = (request.form.get('contact_company') or '').strip()
+    c_email = (request.form.get('contact_email') or '').strip()
+    c_loc = (request.form.get('contact_location') or '').strip()
+    c_mode = (request.form.get('contact_workmode') or '').strip()
+    if c_title:
+        cp['title'] = c_title
+    if c_sub:
+        cp['subtitle'] = c_sub
+    if c_company:
+        cp['companyName'] = c_company
+    if c_email:
+        cp['email'] = c_email
+    if c_loc:
+        cp['location'] = c_loc
+    if c_mode:
+        cp['workMode'] = c_mode
+    content['contactPage'] = cp
 
     _save_site_content(content)
     flash('Site content updated.', 'success')
@@ -1056,6 +1160,45 @@ def save_mail_template():
         flash(f'Template saved for {position}.', 'success')
     token = request.args.get('token') or request.form.get('token')
     return redirect(url_for('view_positions', token=token, position=position))
+
+
+@app.route('/admin/positions/save_templates_bulk', methods=['POST'])
+def save_mail_templates_bulk():
+    """Save multiple position email templates in one submission.
+    Input field names expected:
+      subject_<slug>, body_<slug> for each position, where slug is
+      lowercased position with spaces replaced by underscores.
+    """
+    _require_admin()
+    data = _load_mail_templates()
+
+    def _slug(name: str) -> str:
+        return (name or '').lower().replace(' ', '_')
+
+    changed = False
+    for pos in POSITIONS:
+        s_key = f"subject_{_slug(pos)}"
+        b_key = f"body_{_slug(pos)}"
+        subject = (request.form.get(s_key) or '').strip()
+        body = (request.form.get(b_key) or '').strip()
+        if subject:
+            data.setdefault(pos, {})['subject'] = subject
+            changed = True
+        if body:
+            data.setdefault(pos, {})['body'] = body
+            changed = True
+
+    if changed:
+        _save_mail_templates(data)
+        flash('Email templates saved.', 'success')
+    else:
+        flash('No changes provided for templates.', 'error')
+
+    token = request.args.get('token') or request.form.get('token')
+    next_url = request.form.get('next') or request.args.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect(url_for('admin_dashboard', token=token))
 
 
 @app.route('/admin/rejected')

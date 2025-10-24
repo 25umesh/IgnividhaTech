@@ -31,7 +31,7 @@
 </head>
 <body>
 <div class="container">
-    <h1 class="page-title">Developer Recruitment Registration Form</h1>
+    <h1 class="page-title">{{ (site_content.registerPage.title if site_content and site_content.registerPage and site_content.registerPage.title) else 'Developer Recruitment Registration Form' }}</h1>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -43,6 +43,8 @@
         </ul>
       {% endif %}
     {% endwith %}
+
+    <p style="margin: 6px 0 14px; color:#64748b; font-weight:600;">{{ (site_content.registerPage.intro if site_content and site_content.registerPage and site_content.registerPage.intro) else '' }}</p>
 
     <form id="registrationForm" action="{{ url_for('register') }}" method="POST" enctype="multipart/form-data">
 
@@ -224,14 +226,17 @@
                 <p style="font-size:14px; color:#94a3b8; margin:0 0 12px;">Scan the QR code below to complete the payment. After payment, tap Done to upload your proof.</p>
                 <!-- Fee breakdown box -->
                 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.10); border-radius:12px; padding:12px; margin:0 0 12px;">
-                    <div style="font-weight:800; color:#e2e8f0; font-size:14px;">Total Registration Fee: ₹125</div>
-                    <div style="color:#a3b3c6; font-size:13px; margin-top:4px;">Refundable Amount: ₹100 (returned if not selected)</div>
-                    <div style="color:#a3b3c6; font-size:13px;">Verification Fee: ₹25 (non-refundable, for document and profile verification)</div>
+                    <div style="font-weight:800; color:#e2e8f0; font-size:14px;">Total Registration Fee: {{ (site_content.registerPage.fee.total if site_content and site_content.registerPage and site_content.registerPage.fee and site_content.registerPage.fee.total) else '₹125' }}</div>
+                    <div style="color:#a3b3c6; font-size:13px; margin-top:4px;">Refundable Amount: {{ (site_content.registerPage.fee.refundable if site_content and site_content.registerPage and site_content.registerPage.fee and site_content.registerPage.fee.refundable) else '₹100' }} (returned if not selected)</div>
+                    <div style="color:#a3b3c6; font-size:13px;">Verification Fee: {{ (site_content.registerPage.fee.verification if site_content and site_content.registerPage and site_content.registerPage.fee and site_content.registerPage.fee.verification) else '₹25' }} (non-refundable, for document and profile verification)</div>
+                    {% if site_content and site_content.registerPage and site_content.registerPage.fee and site_content.registerPage.fee.note %}
+                    <div style="color:#94a3b8; font-size:12px; margin-top:6px;">{{ site_content.registerPage.fee.note }}</div>
+                    {% endif %}
                 </div>
                 <div style="display:flex; justify-content:center;">
                         <img src="{{ url_for('static', filename='qr.jpg') }}" alt="Payment QR" style="max-width:100%; width:320px; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:#0f172a;" onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
                 </div>
-                <div id="qrFallback" style="display:none; text-align:center; color:#f59e0b; font-size:14px; margin-top:8px;">QR image not found. Please add <code>QR.jpg</code> inside the <code>static</code> folder.</div>
+                    <div id="qrFallback" style="display:none; text-align:center; color:#f59e0b; font-size:14px; margin-top:8px;">QR image not found. Please add <code>QR.jpg</code> inside the <code>static</code> folder.</div>
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
                     <button type="button" id="qrDone" class="submit-btn">Done</button>
                 </div>

@@ -160,22 +160,139 @@
     </section>
 
     <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-8">
-      <h2 class="text-lg font-bold mb-2">Admin Settings</h2>
-      <p class="text-sm text-gray-600 mb-4">Change login credentials used for the Admin area.</p>
-      <form method="post" action="{{ url_for('admin_update_credentials') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-        <div>
-          <label for="new_username" class="block text-sm font-medium text-gray-700">Username</label>
-          <input id="new_username" name="new_username" type="text" required value="{{ current_username }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+      <h2 class="text-lg font-bold mb-2">Registration Page Content</h2>
+      <p class="text-sm text-gray-600 mb-4">Update registration page headings and fee notes.</p>
+      <form method="post" action="{{ url_for('admin_save_site_content') }}" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Title</label>
+            <input name="reg_title" type="text" placeholder="{{ site_content.registerPage.title }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Intro</label>
+            <textarea name="reg_intro" rows="3" placeholder="{{ site_content.registerPage.intro }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
+          </div>
         </div>
         <div>
-          <label for="new_password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input id="new_password" name="new_password" type="text" required placeholder="Enter new password" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          <h3 class="font-semibold mb-2">Fee Breakdown</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Total</label>
+              <input name="fee_total" type="text" placeholder="{{ site_content.registerPage.fee.total }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Refundable</label>
+              <input name="fee_refundable" type="text" placeholder="{{ site_content.registerPage.fee.refundable }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Verification</label>
+              <input name="fee_verification" type="text" placeholder="{{ site_content.registerPage.fee.verification }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+            </div>
+            <div class="md:col-span-4">
+              <label class="block text-sm font-medium text-gray-700">Note</label>
+              <input name="fee_note" type="text" placeholder="{{ site_content.registerPage.fee.note }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+            </div>
+          </div>
         </div>
-        <div class="md:col-span-2">
-          <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save Changes</button>
+        <div>
+          <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save Registration Content</button>
         </div>
       </form>
     </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-8">
+      <h2 class="text-lg font-bold mb-2">Contact Page Content</h2>
+      <p class="text-sm text-gray-600 mb-4">Update contact page headings and details.</p>
+      <form method="post" action="{{ url_for('admin_save_site_content') }}" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Title</label>
+            <input name="contact_title" type="text" placeholder="{{ site_content.contactPage.title }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Subtitle</label>
+            <input name="contact_subtitle" type="text" placeholder="{{ site_content.contactPage.subtitle }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Company Name</label>
+            <input name="contact_company" type="text" placeholder="{{ site_content.contactPage.companyName }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input name="contact_email" type="email" placeholder="{{ site_content.contactPage.email }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Location</label>
+            <input name="contact_location" type="text" placeholder="{{ site_content.contactPage.location }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Work Mode</label>
+            <input name="contact_workmode" type="text" placeholder="{{ site_content.contactPage.workMode }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+          </div>
+        </div>
+        <div>
+          <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save Contact Content</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-8">
+      <h2 class="text-lg font-bold mb-2">Email Templates</h2>
+      <p class="text-sm text-gray-600 mb-4">Customize email subject and body per position. Leave a field blank to keep current text.</p>
+
+      <!-- Bulk Save All Templates -->
+      <div class="mb-8 border border-gray-200 rounded-xl p-4">
+        <form method="post" action="{{ url_for('save_mail_templates_bulk') }}" class="space-y-4">
+          <h3 class="font-semibold">Bulk Edit</h3>
+          <p class="text-sm text-gray-600">Fill any fields you want to change and click "Save All Templates".</p>
+          <div class="space-y-6">
+            {% for pos in positions %}
+              {% set slug = pos.lower().replace(' ', '_') %}
+              <div class="border border-gray-100 rounded-lg p-4">
+                <div class="text-sm font-semibold mb-2">{{ pos }}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Subject</label>
+                    <input name="subject_{{ slug }}" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Body</label>
+                    <textarea name="body_{{ slug }}" rows="4" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div>
+            <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save All Templates</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="space-y-8">
+        {% for pos in positions %}
+          <div class="border border-gray-200 rounded-xl p-4">
+            <h3 class="font-semibold mb-3">{{ pos }}</h3>
+            <form method="post" action="{{ url_for('save_mail_template') }}" class="space-y-3">
+              <input type="hidden" name="position" value="{{ pos }}" />
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Subject</label>
+                <input name="subject" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Body</label>
+                <textarea name="body" rows="5" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
+              </div>
+              <div>
+                <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save Template</button>
+              </div>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Admin Settings removed as requested -->
 
     <div class="text-center mt-8">
       <a href="{{ url_for('home') }}" class="text-sm text-cyan-700 hover:text-cyan-900">← View site</a>
