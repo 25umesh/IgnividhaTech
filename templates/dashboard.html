@@ -127,25 +127,20 @@
             left: 14px;
         }
     }
-   /* Update sidebar scroll animation
-     Scroll across the full container height: from bottom edge to top edge. */
+    
+    /* THIS IS THE FIX: 
+    The 0% transform now starts at the bottom of the container 
+    (using the height variable) instead of at the top (translateY(0)).
+    */
     @keyframes updateScroll {
       0% {
-        transform: translateY(var(--updateTickerHeight, 80px)); /* start below container */
-        opacity: 0;
-      }
-      10% {
-        opacity: 1;
-      }
-      90% {
-        transform: translateY(calc(-1 * var(--updateTickerHeight, 80px))); /* move past top edge */
-        opacity: 1;
+        transform: translateY(var(--updateTickerHeight, 80px)); /* Start at the BOTTOM */
       }
       100% {
-        transform: translateY(calc(-1 * var(--updateTickerHeight, 80px))); /* end above */
-        opacity: 0;
+        transform: translateY(-50%); /* Scroll to the start of the duplicate list */
       }
     }
+
     .update-scroll-text {
       animation: updateScroll var(--updateTickerDuration, 16s) linear infinite;
       display: block;
@@ -160,9 +155,7 @@
       height: var(--updateTickerHeight, 80px);
       max-height: var(--updateTickerHeight, 80px);
     }
-    .update-scroll-container:hover .update-scroll-text {
-      animation-play-state: paused;
-    }
+    
   /* Default dark-mode text color */
   html.dark body { color: #e5e7eb; }
   /* Stronger light-mode colors for the About section to avoid accidental fade */
@@ -201,7 +194,7 @@
   /* Ensure the section heading is readable on white */
   html:not(.dark) #positions h2 { color: #0f172a !important; }
     /* Navbar behaviour: transparent at page-top (overlay the hero) and solid on scroll.
-       Use high-specificity rules so the visual state is consistent across browsers. */
+        Use high-specificity rules so the visual state is consistent across browsers. */
     .nav-transparent {
       background: transparent !important;
       border-bottom: 0 !important;
@@ -236,8 +229,8 @@
   .nav-transparent .header-link:hover { color: #ffffff !important; }
 
   /* Light-mode: give the transparent navbar a subtle opaque backdrop and
-     use dark links so the nav is readable at page-top. The scrolled state
-     still switches to a solid background when the user scrolls. */
+      use dark links so the nav is readable at page-top. The scrolled state
+      still switches to a solid background when the user scrolls. */
   html:not(.dark) .nav-transparent {
     background: rgba(255,255,255,0.92) !important;
     border-bottom: 1px solid rgba(15,23,42,0.06) !important;
@@ -250,8 +243,8 @@
   }
 
   /* Alternate state for light-mode when nav is at top: apply a subtle
-     opaque background and ensure links are dark. We toggle .light-top
-     on the nav with JS so this only applies when at the page top. */
+      opaque background and ensure links are dark. We toggle .light-top
+      on the nav with JS so this only applies when at the page top. */
   .nav-transparent.light-top {
     background: rgba(255,255,255,0.92) !important;
     border-bottom: 1px solid rgba(15,23,42,0.06) !important;
@@ -289,7 +282,13 @@
     background-position: center;
     background-repeat: no-repeat;
   }
-  /* (Removed duplicate @keyframes updateScroll to avoid conflicts) */
+  /* Guidelines section background image */
+  .guidelines-bg {
+    background-image: url('{{ url_for('static', filename='background2.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
   </style>
 </head>
 <body>
@@ -305,11 +304,12 @@
         <a href="#positions" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Positions</a>
         <a href="#qualifications" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Qualifications</a>
         <a href="#guidelines" class="text-sm font-medium text-gray-700 dark:text-gray-300 header-link hidden md:inline whitespace-nowrap">Guidelines</a>
-  <a href="#" id="openUpdateSidebar" class="text-sm font-medium text-cyan-600 dark:text-cyan-400 header-link hidden md:inline whitespace-nowrap">Updates</a>
+      <a href="#" id="openUpdateSidebar" class="text-sm font-medium text-cyan-600 dark:text-cyan-400 header-link hidden md:inline whitespace-nowrap">Updates</a>
+      <!-- Admin icon button moved to far right corner -->
 
       <button id="themeToggle" type="button"
-           class="hidden md:inline-flex items-center justify-center h-10 gap-2 px-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition"
-           aria-label="Toggle theme">
+            class="hidden md:inline-flex items-center justify-center h-10 gap-2 px-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition"
+            aria-label="Toggle theme">
           <svg class="icon-sun h-5 w-5 text-yellow-500 hidden" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/>
             <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -320,21 +320,22 @@
         </button>
         
         <a href="{{ url_for('register') }}" target="_blank" id="register-btn"
-           class="inline-flex items-center h-10 bg-white text-black px-5 rounded-lg font-semibold text-sm hover:bg-gray-200 transition shadow-lg shadow-cyan-900/40">
+            class="inline-flex items-center h-10 bg-white text-black px-5 rounded-lg font-semibold text-sm hover:bg-gray-200 transition shadow-lg shadow-cyan-900/40">
           Register Now
         </a>
+        <!-- Admin icon removed per request -->
       </div>
     </div>
   </nav>
 
   <section class="hero-bg bg-white dark:bg-[#0b1220] h-[70vh] md:h-[75vh] flex items-center justify-center relative overflow-hidden">
     <div class="text-center px-4 max-w-4xl z-10 hero-content">
-      <span class="text-sm font-medium bg-red-600 text-white px-3 py-1 rounded-full mb-3 inline-block shadow-md">PAID OPPORTUNITY</span>
+      <span class="text-sm font-medium bg-red-600 text-white px-3 py-1 rounded-full mb-3 inline-block shadow-md">{{ (site_content.hero.badge if site_content and site_content.hero and site_content.hero.badge else 'PAID OPPORTUNITY') }}</span>
       <h1 class="text-6xl md:text-8xl font-extrabold mb-4 tracking-wider hero-title">
-        <span style="font-family: Georgia, serif; font-weight: 900;">I</span>gnividhaTech
+        {{ (site_content.hero.title if site_content and site_content.hero and site_content.hero.title else 'IgnividhaTech') }}
       </h1>
       <h2 class="text-4xl md:text-5xl font-semibold mb-6 text-gray-900 dark:text-white tracking-wide">
-        Developer Recruitment
+        {{ (site_content.hero.subtitle if site_content and site_content.hero and site_content.hero.subtitle else 'Developer Recruitment') }}
       </h2>
       <p class="text-lg md:text-xl font-light mb-6 text-gray-700 dark:text-gray-300">
         Work From Home – Part-Time: Project-Based Stipends
@@ -342,9 +343,9 @@
       <p class="text-base md:text-lg font-semibold text-gray-900 dark:text-white/90 mb-6">
         Open to all students and graduates interested in remote part-time work.
       </p>
-    <a href="{{ url_for('register') }}" target="_blank" 
+    <a href="{{ (site_content.hero.ctaLink if site_content and site_content.hero and site_content.hero.ctaLink else url_for('register')) }}" target="_blank" 
       class="hero-cta">
-        Register Now
+        {{ (site_content.hero.ctaLabel if site_content and site_content.hero and site_content.hero.ctaLabel else 'Register Now') }}
       </a>
     </div>
   <div class="absolute inset-0 z-0 opacity-0 dark:opacity-15" style="background: radial-gradient(circle at 50% 10%, rgba(0,0,0,0.45) 0%, transparent 70%);"></div>
@@ -356,7 +357,7 @@
     <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
       <div class="md:w-2/5 text-center md:text-right">
         <p class="text-gray-800 dark:text-gray-300 text-lg">
-          Join our remote developer team on a project-by-project basis. Earn stipends for completed work, not a fixed salary.
+          {{ (site_content.about.leftText if site_content and site_content.about and site_content.about.leftText else 'Join our remote developer team on a project-by-project basis. Earn stipends for completed work, not a fixed salary.') }}
         </p>
       </div>
       <div class="flex-shrink-0 order-first md:order-none">
@@ -364,7 +365,7 @@
       </div>
       <div class="md:w-2/5 text-center md:text-left">
         <p class="text-gray-800 dark:text-gray-300 text-lg">
-          Gain real-world experience on exciting projects with flexible hours. Work from anywhere and meet project deadlines to build your portfolio.
+          {{ (site_content.about.rightText if site_content and site_content.about and site_content.about.rightText else 'Gain real-world experience on exciting projects with flexible hours. Work from anywhere and meet project deadlines to build your portfolio.') }}
         </p>
       </div>
     </div>
@@ -377,22 +378,22 @@
         <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
           <span class="text-5xl mb-4 inline-block text-cyan-400">🖥</span>
           <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Frontend Developers</h4>
-          <p class="text-gray-600 dark:text-gray-400 text-sm">Build responsive user interfaces and web applications.</p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">{{ (site_content.positions.frontend if site_content and site_content.positions and site_content.positions.frontend else 'Build responsive user interfaces and web applications.') }}</p>
         </div>
         <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
           <span class="text-5xl mb-4 inline-block text-yellow-400">⚙</span>
           <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Backend Developers</h4>
-          <p class="text-gray-600 dark:text-gray-400 text-sm">Design APIs, manage databases, and write server-side logic.</p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">{{ (site_content.positions.backend if site_content and site_content.positions and site_content.positions.backend else 'Design APIs, manage databases, and write server-side logic.') }}</p>
         </div>
         <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
           <span class="text-5xl mb-4 inline-block text-gray-500 dark:text-gray-300">🌐</span>
           <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">Full Stack Developers</h4>
-          <p class="text-gray-600 dark:text-gray-400 text-sm">Handle both client-side and server-side infrastructure.</p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">{{ (site_content.positions.fullstack if site_content and site_content.positions and site_content.positions.fullstack else 'Handle both client-side and server-side infrastructure.') }}</p>
         </div>
         <div class="card rounded-xl p-6 text-center shadow-lg hover:shadow-cyan-900/50">
           <span class="text-5xl mb-4 inline-block text-pink-400">📱</span>
           <h4 class="font-semibold text-2xl mb-2 text-gray-900 dark:text-white">App Developers</h4>
-          <p class="text-gray-600 dark:text-gray-400 text-sm">Develop Android/iOS apps focused on performance.</p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">{{ (site_content.positions.app if site_content and site_content.positions and site_content.positions.app else 'Develop Android/iOS apps focused on performance.') }}</p>
         </div>
       </div>
     </div>
@@ -409,7 +410,7 @@
             <div class="absolute top-1 -left-1.5 md:left-auto md:-right-[1.1rem] w-6 h-6 rounded-full bg-cyan-500 shadow-md shadow-cyan-500/50 border-4 border-gray-900"></div>
             <div class="card rounded-lg p-5">
               <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">Core Requirement (All Applicants)</h3>
-              <p class="text-gray-600 dark:text-gray-400 text-sm">Required: Upload at least one offline Hackathon Certificate. You can submit multiple certificates if available.</p>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">{{ (site_content.qualifications.coreRequirement if site_content and site_content.qualifications and site_content.qualifications.coreRequirement else 'Required: Upload at least one offline Hackathon Certificate. You can submit multiple certificates if available.') }}</p>
             </div>
           </div>
         </div>
@@ -423,8 +424,10 @@
             <div class="card rounded-lg p-5">
               <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">For Students 👨‍🎓</h3>
               <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400 text-sm">
-                <li>Provide your College ID Card for verification.</li>
-                <li>Including project/work samples is optional but recommended.</li>
+                {% set students_list = site_content.qualifications.students if site_content and site_content.qualifications and site_content.qualifications.students else ['Provide your College ID Card for verification.', 'Including project/work samples is optional but recommended.'] %}
+                {% for item in students_list %}
+                  <li>{{ item }}</li>
+                {% endfor %}
               </ul>
             </div>
           </div>
@@ -436,8 +439,10 @@
             <div class="card rounded-lg p-5">
               <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">For Graduates 🎓</h3>
               <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400 text-sm">
-                <li>Submit any offline internship certificates.</li>
-                <li>Include project/work samples to showcase your experience.</li>
+                {% set grads_list = site_content.qualifications.graduates if site_content and site_content.qualifications and site_content.qualifications.graduates else ['Submit any offline internship certificates.', 'Include project/work samples to showcase your experience.'] %}
+                {% for item in grads_list %}
+                  <li>{{ item }}</li>
+                {% endfor %}
               </ul>
             </div>
           </div>
@@ -447,7 +452,6 @@
     </div>
   </section>
 
-  <!-- Update Sidebar Modal (hidden by default) -->
   <div id="updateOverlay" class="fixed inset-0 bg-black/40 z-40 hidden" aria-hidden="true"></div>
 
   <aside id="updateSidebar" role="dialog" aria-modal="true" aria-hidden="true" class="fixed left-4 top-20 w-80 bg-white dark:bg-gray-900 shadow-2xl z-50 transition-transform duration-300 rounded-xl border-4 border-red-500" style="transform: translateX(-120%);">
@@ -457,46 +461,53 @@
     </div>
       <div class="px-6 py-5">
   <div class="update-scroll-container relative overflow-hidden w-full" style="--updateTickerHeight: 460px; --updateTickerDuration: 16s;">
-          <div id="updateText" class="update-scroll-text w-full px-2 text-gray-800 dark:text-gray-200 font-semibold text-base" style="white-space: nowrap;">
+          <div id="updateText" class="update-scroll-text w-full px-2 text-gray-800 dark:text-gray-200 font-semibold text-base">
             {{ update }}
           </div>
         </div>
       </div>
     </aside>
 
-  <section id="guidelines" class="bg-gray-950 py-20 border-t border-b border-cyan-800/30">
+  <section id="guidelines" class="pt-20 pb-8 guidelines-bg text-white">
     <div class="container mx-auto px-4 max-w-3xl">
-      <h2 class="text-3xl font-bold text-center mb-12 text-white">Recruitment Selection Guidelines</h2>
-      <div class="bg-gray-900 p-8 rounded-xl shadow-2xl border-2 border-cyan-800/50">
-        <ul class="space-y-4 text-gray-300 text-left">
-          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection is based on your skills, project quality, and alignment with our needs.</span></li>
-          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">Not selected? Improve your skills and apply again in future cycles.</span></li>
-          <li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">•</span><span class="flex-1">For sponsorships or paid collaborations, please email us directly.</span></li>
+      <div class="rounded-2xl p-8 md:p-10">
+        <h2 class="text-3xl font-bold text-center mb-8 text-white">Recruitment Selection Guidelines</h2>
+        <ul class="space-y-4 text-white/95 text-left mb-8">
+          <li class="flex items-start"><span class="text-green-400 mr-3 mt-1 text-xl">•</span><span class="flex-1">Selection is based on your skills, project quality, and alignment with our needs.</span></li>
+          <li class="flex items-start"><span class="text-green-400 mr-3 mt-1 text-xl">•</span><span class="flex-1">Not selected? Improve your skills and apply again in future cycles.</span></li>
         </ul>
-      
-        <div class="mt-12 text-center">
-          <h3 class="text-2xl font-semibold mb-4 text-white">Work Mode & Socials</h3>
-          <p class="text-lg text-gray-700 dark:text-cyan-300">🌍 Work Mode: Remote / Work From Home | Flexible Part-Time Opportunities</p>
-          <p class="text-sm text-gray-400 mt-2">Provide your active profiles for GitHub, LinkedIn, Instagram, and your Portfolio when registering.</p>
-          <div class="flex justify-center gap-6 mt-6 text-xl text-gray-400">
-            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">GitHub</a>
-            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">LinkedIn</a>
-            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">Instagram</a>
-            <a href="#" target="_blank" class="hover:text-cyan-400 transition hover:scale-110">Portfolio</a>
+
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-semibold mb-3 text-white">Work Mode & Socials</h3>
+          <p class="text-lg text-white/90">🌍 Work Mode: Remote / Work From Home | Flexible Part-Time Opportunities</p>
+          <p class="text-sm text-white/80 mt-2">Provide your active profiles for GitHub, LinkedIn, Instagram, and your Portfolio when registering.</p>
+          <div class="flex justify-center gap-10 mt-6">
+            <a href="https://www.linkedin.com/in/ignividhatech" target="_blank" aria-label="LinkedIn" class="flex flex-col items-center text-white hover:text-cyan-200 transition transform hover:scale-110">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9">
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.5 8h4v16h-4V8zm7.5 0h3.8v2.2h.05c.53-1 1.82-2.2 3.75-2.2 4 0 4.7 2.6 4.7 6V24h-4v-7.6c0-1.8 0-4.1-2.5-4.1s-2.9 2-2.9 3.9V24h-4V8z"/>
+              </svg>
+              <span class="sr-only">LinkedIn</span>
+              <span aria-hidden="true" class="mt-2 text-sm">LinkedIn</span>
+            </a>
+            <a href="https://www.instagram.com/ignividhatech?igsh=MWdlc2Z2MHZyaWdheg==" target="_blank" aria-label="Instagram" class="flex flex-col items-center text-white hover:text-cyan-200 transition transform hover:scale-110">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9">
+                <path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm6.5-.75a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z"/>
+              </svg>
+              <span class="sr-only">Instagram</span>
+              <span aria-hidden="true" class="mt-2 text-sm">Instagram</span>
+            </a>
           </div>
+        </div>
+
+        <div class="text-center border-t border-white/20 pt-6">
+          <p class="text-base text-white">📧 Contact: <a href="{{ url_for('contact') }}" class="text-cyan-200 hover:text-white transition">Get in touch</a></p>
+          <p class="mt-3 text-sm text-white/70">© 2025 IgnividhaTech Developer Recruitment. All rights reserved.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <footer class="bg-black text-white py-10 border-t border-cyan-500/30">
-    <div class="container mx-auto px-4 text-center">
-  <p>📧 Contact: <a href="{{ url_for('contact') }}" class="text-cyan-300 hover:text-cyan-200 transition">Get in touch</a></p>
-      <p class="mt-2 text-sm text-gray-500">© 2025 IgnividhaTech Developer Recruitment. All rights reserved.</p>
-    </div>
-  </footer>
-
-  <!-- (Removed duplicate sidebar block) -->
+  
 
   <script>
     (function(){
@@ -550,49 +561,94 @@
         window.addEventListener('scroll', onScroll, { passive: true });
     })();
   </script>
+  
   <script>
-    // Update Sidebar functionality (toggle overlay and aria-hidden)
+    // Update Sidebar functionality (Marquee Version)
     (function(){
       const updateBtn = document.getElementById('openUpdateSidebar');
       const sidebar = document.getElementById('updateSidebar');
       const overlay = document.getElementById('updateOverlay');
-  const updateEl = document.getElementById('updateText');
-  const updatesData = {{ updates|tojson }};
-  let updateIndex = 0;
-  const PAUSE_MS = 0; // not used with infinite animation
-  let nextTimer = null;
-  const container = document.querySelector('.update-scroll-container');
+      const updateEl = document.getElementById('updateText');
+      const container = document.querySelector('.update-scroll-container');
+      const updatesApiUrl = "{{ url_for('api_updates') }}";
+      
+      // Base speed: e.g., 5 seconds per update item
+      const SCROLL_SPEED_PER_ITEM = 5; // in seconds
 
-      function startTicker() {
-        if (!updateEl || !Array.isArray(updatesData) || updatesData.length === 0) return;
-        // Set current text
-        updateEl.textContent = updatesData[updateIndex % updatesData.length];
-        // Ensure starting transform is at the bottom for visual continuity
-        const h = getComputedStyle(container).getPropertyValue('--updateTickerHeight').trim() || '80px';
-        updateEl.style.transform = `translateY(${h})`;
+      async function setupMarquee() {
+        let updatesData = [];
+        // 1. Fetch fresh updates
+        try {
+          // Use a dummy array if {{ updates|tojson }} fails or is empty, to show functionality
+          let serverUpdates = {{ updates|tojson }};
+          if (!Array.isArray(serverUpdates) || serverUpdates.length === 0) {
+             const res = await fetch(updatesApiUrl, { cache: 'no-store' });
+             if (!res.ok) throw new Error('Failed to fetch updates');
+             const data = await res.json();
+             if (data && Array.isArray(data.updates)) {
+               updatesData = data.updates;
+             }
+          } else {
+            updatesData = serverUpdates;
+          }
+        } catch (e) {
+          console.error(e);
+          // Fallback data in case fetch fails
+          updatesData = ["Error loading updates.", "Please check your connection."];
+        }
+
+        if (updatesData.length === 0) {
+          updateEl.innerHTML = "<div>No updates at this time.</div>";
+          return;
+        }
+
+        // 2. Build the HTML string
+        // We add padding (py-3) to create space between items
+        const allUpdatesHtml = updatesData
+          .map(u => `<div class="py-3">${u}</div>`)
+          .join('');
+
+        // 3. Duplicate the list for a seamless loop
+        updateEl.innerHTML = allUpdatesHtml + allUpdatesHtml;
+
+        // 4. Set animation duration based on content
+        // More updates = longer animation = same scroll speed
+        const totalDuration = updatesData.length * SCROLL_SPEED_PER_ITEM;
+        
+        // We must use var() to set the duration for the CSS animation
+        // Note: We use the element.style to set the variable, not the container
+        updateEl.style.setProperty('--updateTickerDuration', `${totalDuration}s`);
+        
+        // 5. Ensure animation is running
+        updateEl.style.animationPlayState = 'running';
       }
-      if (!updateBtn || !sidebar) return;
 
-      function openSidebar() {
-        // move panel into view — left: 1rem (left-4) + translateX(0)
+      if (!updateBtn || !sidebar || !updateEl || !container) return;
+
+      async function openSidebar() {
         sidebar.style.transform = 'translateX(0)';
         sidebar.setAttribute('aria-hidden', 'false');
         if (overlay) overlay.classList.remove('hidden');
         if (overlay) overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        // Restart the ticker animation from the bottom on open
-        startTicker();
+        // Setup the marquee *after* the sidebar is open
+        await setupMarquee();
       }
 
       function closeSidebar() {
-        // move panel fully off-screen (a bit more than -100% to avoid visible edge)
         sidebar.style.transform = 'translateX(-120%)';
         sidebar.setAttribute('aria-hidden', 'true');
         if (overlay) overlay.classList.add('hidden');
         if (overlay) overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        
+        // Stop animation and clear content when closed
+        updateEl.style.animationPlayState = 'paused';
+        updateEl.innerHTML = '';
       }
+
+      // --- Event Listeners ---
 
       updateBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -601,44 +657,26 @@
 
       window.closeUpdateSidebar = closeSidebar;
 
-      // Close sidebar when clicking overlay or outside
+      // Pause on hover
+      container.addEventListener('mouseenter', () => {
+        updateEl.style.animationPlayState = 'paused';
+      });
+
+      // Resume on mouse leave
+      container.addEventListener('mouseleave', () => {
+        updateEl.style.animationPlayState = 'running';
+      });
+
       if (overlay) {
         overlay.addEventListener('click', closeSidebar);
       }
 
-      document.addEventListener('mousedown', function(e) {
-        if (!sidebar.contains(e.target) && !overlay.contains(e.target) && sidebar.getAttribute('aria-hidden') === 'false') {
-          closeSidebar();
-        }
-      });
-
-      // Close sidebar on Escape key
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && sidebar.getAttribute('aria-hidden') === 'false') {
           closeSidebar();
         }
       });
 
-      // Cycle through updates on each animation iteration (infinite loop)
-      if (updateEl && Array.isArray(updatesData) && updatesData.length > 0) {
-        updateIndex = 0;
-        startTicker();
-        updateEl.addEventListener('animationiteration', () => {
-          updateIndex = (updateIndex + 1) % updatesData.length;
-          startTicker();
-        });
-
-        // Respect pause on hover even during the waiting phase
-        if (container) {
-          container.addEventListener('mouseenter', () => {
-            if (nextTimer) {
-              clearTimeout(nextTimer);
-              nextTimer = null;
-            }
-          });
-          container.addEventListener('mouseleave', () => {});
-        }
-      }
     })();
   </script>
 </body>

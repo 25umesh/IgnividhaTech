@@ -16,27 +16,59 @@
 </head>
 <body class="text-gray-100 p-6">
     <div class="max-w-6xl mx-auto">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mb-4 space-y-2">
+                  {% for category, message in messages %}
+                    <div class="text-sm px-3 py-2 rounded border {{ 'bg-red-900/20 border-red-500/40 text-red-300' if category=='error' else 'bg-emerald-900/20 border-emerald-500/40 text-emerald-200' }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
             <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-red-400">❌ Rejected Candidates</h1>
                 <p class="text-gray-400">Total: <span class="text-white font-semibold">{{ registrations|length }}</span></p>
             </div>
             <div class="flex gap-3">
+                <a href="{{ url_for('view_positions', token=request.args.get('token')) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">Positions</a>
                 <a href="{{ url_for('view_registrations', token=request.args.get('token')) }}" class="bg-cyan-500 hover:bg-cyan-600 text-black px-4 py-2 rounded-lg font-semibold">All Registrations</a>
                 <a href="{{ url_for('view_selected', token=request.args.get('token')) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold">Selected</a>
                 <a href="{{ url_for('view_paused', token=request.args.get('token')) }}" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg font-semibold">Paused</a>
+                <a href="{{ url_for('download_rejected_excel', token=request.args.get('token')) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold">Download Rejected (Excel)</a>
             </div>
         </div>
 
         {% if registrations %}
-        <div class="space-y-4">
+        <div class="mb-4 flex items-center justify-between">
+            <form method="POST" action="{{ url_for('delete_selected_rejected') }}" class="flex items-center gap-3">
+                <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold">Delete Selected</button>
+            </form>
+            <form method="POST" action="{{ url_for('delete_all_rejected') }}" onsubmit="return confirm('Delete ALL rejected registrations? This cannot be undone.');">
+                <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg font-semibold">Delete All</button>
+            </form>
+        </div>
+
+        <form method="POST" action="{{ url_for('delete_selected_rejected') }}">
+            <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <div class="space-y-4">
             {% for reg in registrations %}
             <div class="card rounded-xl p-5">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                     <div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="selected_ids" value="{{ reg.id }}" class="h-4 w-4 rounded border-gray-500">
+                            <div>
                         <div class="text-lg font-semibold text-white">{{ reg.fullname }}</div>
                         <div class="text-sm text-gray-400">{{ reg.email }}</div>
                         <div class="text-sm text-gray-400">{{ reg.contact }}</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="md:col-span-3">
                         {% if reg.payment_proof %}
@@ -59,7 +91,12 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-4 flex items-center gap-3">
+                    <button type="button"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow transition"
+                            onclick="openMailModal({ id: {{ reg.id }}, name: '{{ reg.fullname|e }}', email: '{{ reg.email|e }}' })">
+                        Send Mail
+                    </button>
                     <form method="POST" action="{{ url_for('delete_registration', reg_id=reg.id) }}" onsubmit="return confirm('Delete this registration permanently?');">
                         <input type="hidden" name="token" value="{{ request.args.get('token') }}">
                         <input type="hidden" name="next" value="{{ request.full_path }}">
@@ -68,7 +105,11 @@
                 </div>
             </div>
             {% endfor %}
-        </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold">Delete Selected</button>
+            </div>
+        </form>
         {% else %}
         <div class="card rounded-xl p-12 text-center">
             <div class="text-6xl mb-2">🔴</div>
@@ -76,5 +117,58 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Send Mail Modal -->
+    <div id="mailModal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.8);">
+        <div style="max-width:640px; width:92%; margin:5% auto; background:#1e1e2e; border:1px solid rgba(6,182,212,0.3); border-radius:12px; padding:18px; color:#e5e7eb;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="mailTitle" class="text-xl font-bold">Send Mail</h3>
+                <button onclick="closeMailModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <form id="mailForm" method="POST" action="{{ url_for('send_mail_single') }}">
+                <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <input type="hidden" id="mailRegId" name="reg_id" value="">
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Subject</label>
+                        <input name="subject" id="mailSubject" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Enter email subject" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Body</label>
+                        <textarea name="body" id="mailBody" rows="6" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Write your message here."></textarea>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeMailModal()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openMailModal(candidate){
+            const fullName = candidate.name || 'Candidate';
+            document.getElementById('mailRegId').value = candidate.id;
+            document.getElementById('mailTitle').textContent = `Send Mail • ${fullName}`;
+            // Prefill sensible defaults (you can change before sending)
+            document.getElementById('mailSubject').value = 'Regarding your application to IgnividhaTech';
+            document.getElementById('mailBody').value = `Hello ${fullName},\n\n` +
+                `Thank you for your interest in IgnividhaTech. After careful review, we won’t ` +
+                `be moving forward with your application at this time.\n\n` +
+                `We appreciate the time you invested and encourage you to apply again in the future.\n\n` +
+                `Regards,\nIgnividhaTech Team`;
+            const m = document.getElementById('mailModal');
+            m.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMailModal(){
+            const m = document.getElementById('mailModal');
+            m.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeMailModal(); }});
+    </script>
 </body>
 </html>

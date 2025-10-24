@@ -174,6 +174,21 @@
             </div>
         </section>
 
+        <!-- Proof of Identity (Mandatory) -->
+        <section class="form-section">
+            <h2>Proof of Identity (Mandatory)</h2>
+            <label for="id_proof_type">Choose ID Type:</label>
+            <select id="id_proof_type" name="id_proof_type" required>
+                <option value="">Select an option</option>
+                <option value="Aadhaar Card">Aadhaar Card</option>
+                <option value="PAN Card">PAN Card</option>
+                <option value="DigiLocker">DigiLocker</option>
+            </select>
+
+            <label for="id_proof_file" style="margin-top:8px; font-weight:700;">Upload Photo of Selected ID:</label>
+            <input type="file" id="id_proof_file" name="id_proof_file" accept="image/*" required>
+        </section>
+
         <!-- Instagram Follow Proof -->
         <section class="form-section">
             <h2>Instagram Follow Proof</h2>
@@ -188,12 +203,34 @@
             <input type="file" name="linkedin_follow_proof" id="linkedin_follow_proof">
         </section>
 
-        <!-- Payment Proof -->
+        <!-- Payment -->
         <section class="form-section">
-            <h2>Payment Proof</h2>
-            <p>Please upload a screenshot or receipt of your payment (image or PDF).</p>
-            <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf" required>
+            <h2>Payment</h2>
+            <p>Click the button to view the QR code, complete the payment, then upload the proof.</p>
+            <button type="button" id="showQrBtn" class="submit-btn" style="margin-bottom:10px;">Show QR to Pay</button>
+            <div id="paymentProofWrap" style="display:none; margin-top:8px;">
+                <label for="payment_proof" style="font-weight:700;">Upload Payment Proof (image or PDF):</label>
+                <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf" required>
+            </div>
         </section>
+
+        <!-- QR Modal -->
+        <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+            <div id="qrPanel" style="background:#0b1220; color:#e5e7eb; width:min(92%,560px); border-radius:16px; border:1px solid rgba(255,255,255,0.08); padding:18px; transform:translateY(24px); opacity:0; transition:all .25s ease;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <h3 style="font-size:18px; font-weight:800; margin:0;">Scan to Pay</h3>
+                    <button type="button" id="qrClose" title="Close" style="background:transparent; border:0; color:#94a3b8; font-size:22px; cursor:pointer;">×</button>
+                </div>
+                <p style="font-size:14px; color:#94a3b8; margin:0 0 12px;">Scan the QR code below to complete the payment. After payment, tap Done to upload your proof.</p>
+                <div style="display:flex; justify-content:center;">
+                    <img src="{{ url_for('static', filename='Qr.jpg') }}" alt="Payment QR" style="max-width:100%; width:320px; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:#0f172a;" onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
+                </div>
+                <div id="qrFallback" style="display:none; text-align:center; color:#f59e0b; font-size:14px; margin-top:8px;">QR image not found. Please add Qr.jpg inside the static folder.</div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                    <button type="button" id="qrDone" class="submit-btn">Done</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Social Media / Portfolio Links -->
         <section class="form-section">
@@ -379,6 +416,60 @@
             }
         });
     }
+
+    // Ensure an ID type is chosen when uploading ID photo
+    const idType = document.getElementById('id_proof_type');
+    const idFile = document.getElementById('id_proof_file');
+    form.addEventListener('submit', function(e) {
+        if (!idType || !idFile) return; // safety
+        if (!idType.value) {
+            e.preventDefault();
+            alert('Please select a Proof of Identity type.');
+            idType.focus();
+            return;
+        }
+        if (!idFile.files || idFile.files.length === 0) {
+            e.preventDefault();
+            alert('Please upload a photo for the selected Proof of Identity.');
+            idFile.focus();
+            return;
+        }
+    });
+
+    // Payment QR flow
+    const showQrBtn = document.getElementById('showQrBtn');
+    const qrModal = document.getElementById('qrModal');
+    const qrPanel = document.getElementById('qrPanel');
+    const qrClose = document.getElementById('qrClose');
+    const qrDone = document.getElementById('qrDone');
+    const paymentWrap = document.getElementById('paymentProofWrap');
+    function openQr() {
+        if (!qrModal || !qrPanel) return;
+        qrModal.style.display = 'flex';
+        requestAnimationFrame(() => {
+            qrPanel.style.transform = 'translateY(0)';
+            qrPanel.style.opacity = '1';
+        });
+        document.body.style.overflow = 'hidden';
+    }
+    function closeQr() {
+        if (!qrModal || !qrPanel) return;
+        qrPanel.style.transform = 'translateY(24px)';
+        qrPanel.style.opacity = '0';
+        setTimeout(() => { qrModal.style.display = 'none'; }, 200);
+        document.body.style.overflow = '';
+    }
+    if (showQrBtn) showQrBtn.addEventListener('click', openQr);
+    if (qrClose) qrClose.addEventListener('click', closeQr);
+    if (qrModal) qrModal.addEventListener('click', (e) => { if (e.target === qrModal) closeQr(); });
+    if (qrDone) qrDone.addEventListener('click', () => {
+        closeQr();
+        if (paymentWrap) {
+            paymentWrap.style.display = 'block';
+            // Scroll into view so user sees where to upload proof
+            paymentWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
 </script>
 </body>
 </html>

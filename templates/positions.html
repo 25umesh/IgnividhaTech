@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Positions - Selected Candidates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0f15, #1a1a28); }
+        .card { background: #1e1e2e; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .avatar { width: 56px; height: 56px; object-fit: cover; border-radius: 9999px; border: 2px solid rgba(6, 182, 212, 0.4); }
+        .chip { padding: 4px 10px; border-radius: 9999px; font-size: 12px; }
+    </style>
+</head>
+<body class="text-gray-100 p-6">
+    <div class="max-w-7xl mx-auto">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-4 space-y-2">
+                            {% for category, message in messages %}
+                                <div class="text-sm px-3 py-2 rounded border {{ 'bg-red-900/20 border-red-500/40 text-red-300' if category=='error' else 'bg-emerald-900/20 border-emerald-500/40 text-emerald-200' }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-cyan-400">🏷️ Positions</h1>
+                <p class="text-gray-400 text-sm">View selected candidates by position</p>
+                {% if positions %}
+                <div class="mt-3 flex flex-wrap gap-2 text-sm">
+                    <a href="{{ url_for('view_positions', token=request.args.get('token')) }}" class="px-3 py-1 rounded border {{ 'border-cyan-400 text-cyan-300' if not active_position else 'border-gray-600 text-gray-300' }}">All</a>
+                    {% for p in positions %}
+                        <a href="{{ url_for('view_positions', token=request.args.get('token'), position=p) }}" class="px-3 py-1 rounded border {{ 'border-cyan-400 text-cyan-300' if active_position==p else 'border-gray-600 text-gray-300' }}">{{ p }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="flex gap-3">
+                <a href="{{ url_for('view_registrations', token=request.args.get('token')) }}" class="bg-cyan-500 hover:bg-cyan-600 text-black px-4 py-2 rounded-lg font-semibold">All Registrations</a>
+                <a href="{{ url_for('view_selected', token=request.args.get('token')) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold">Selected</a>
+                <a href="{{ url_for('view_paused', token=request.args.get('token')) }}" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg font-semibold">Paused</a>
+                <a href="{{ url_for('view_rejected', token=request.args.get('token')) }}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold">Rejected</a>
+                <a href="{{ url_for('download_selected_excel', token=request.args.get('token')) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold">Download All (Excel)</a>
+            </div>
+        </div>
+
+        {% if positions %}
+            {% for position in positions %}
+            {% set regs = groups.get(position, []) %}
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-2xl font-bold text-white">{{ position }}</h2>
+                    <div class="flex items-center gap-3">
+                        <span class="chip border border-cyan-500/40 text-cyan-300">{{ regs|length }} selected</span>
+                        <a href="{{ url_for('download_position_excel', token=request.args.get('token'), position=position) }}"
+                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow">
+                            Download
+                        </a>
+                        <form method="POST" action="{{ url_for('send_mail_to_position') }}" onsubmit="return confirm('Send predefined email to all selected for {{ position }}?');">
+                            <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                            <input type="hidden" name="position" value="{{ position }}">
+                            <button type="submit"
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow">
+                                Mail All
+                            </button>
+                        </form>
+                        <button type="button"
+                                class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow"
+                                onclick="openTemplateModal('{{ position }}')">
+                            Edit Template
+                        </button>
+                        <button type="button"
+                                class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded-lg text-xs font-bold shadow"
+                                onclick="openMailModal('{{ position }}')">
+                            Send Mail
+                        </button>
+                    </div>
+                </div>
+                {% if regs %}
+                <div class="space-y-3">
+                    {% for reg in regs %}
+                    <div class="card rounded-xl p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            {% if reg.profile_photo %}
+                                <img src="{{ url_for('uploaded_file', filename=reg.profile_photo) }}" alt="Profile photo" class="avatar">
+                            {% endif %}
+                            <div>
+                                <div class="text-lg font-semibold text-white">{{ reg.fullname }}</div>
+                                <div class="text-xs text-gray-400">{{ reg.email }} • {{ reg.contact }}</div>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('delete_registration', reg_id=reg.id) }}" onsubmit="return confirm('Delete this registration permanently?');">
+                            <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                            <input type="hidden" name="next" value="{{ request.full_path }}">
+                            <button type="submit" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow transition">Delete</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card rounded-xl p-6 text-gray-400">No candidates selected for {{ position }} yet.</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card rounded-xl p-12 text-center">
+                <div class="text-6xl mb-2">📂</div>
+                <div class="text-xl text-gray-400">No positions have selected candidates yet.</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Send Mail Modal -->
+    <div id="mailModal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.8);">
+        <div style="max-width:640px; width:92%; margin:5% auto; background:#1e1e2e; border:1px solid rgba(6,182,212,0.3); border-radius:12px; padding:18px; color:#e5e7eb;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="mailTitle" class="text-xl font-bold">Send Mail</h3>
+                <button onclick="closeMailModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <form id="mailForm" method="POST" action="{{ url_for('send_mail_to_position') }}">
+                <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                <input type="hidden" id="mailPosition" name="position" value="">
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Subject</label>
+                        <input name="subject" id="mailSubject" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Enter email subject" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Body</label>
+                        <textarea name="body" id="mailBody" rows="6" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Write your message here. You can add role-specific text later."></textarea>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeMailModal()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Template Modal -->
+    <div id="templateModal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.8);">
+        <div style="max-width:640px; width:92%; margin:5% auto; background:#1e1e2e; border:1px solid rgba(6,182,212,0.3); border-radius:12px; padding:18px; color:#e5e7eb;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="tmplTitle" class="text-xl font-bold">Edit Template</h3>
+                <button onclick="closeTemplateModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <form id="tmplForm" method="POST" action="{{ url_for('save_mail_template') }}">
+                <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+                <input type="hidden" id="tmplPosition" name="position" value="">
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Default Subject</label>
+                        <input name="subject" id="tmplSubject" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Default email subject" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Default Body</label>
+                        <textarea name="body" id="tmplBody" rows="6" class="w-full rounded bg-gray-900 border border-gray-700 px-3 py-2" placeholder="Default email body"></textarea>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeTemplateModal()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const roleTemplates = {{ (mail_templates or {}) | tojson }};
+        function openMailModal(position) {
+            document.getElementById('mailPosition').value = position;
+            document.getElementById('mailTitle').textContent = `Send Mail • ${position}`;
+            // Prefill with template values if available
+            const t = roleTemplates[position] || {};
+            document.getElementById('mailSubject').value = t.subject || '';
+            document.getElementById('mailBody').value = t.body || '';
+            const m = document.getElementById('mailModal');
+            m.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMailModal() {
+            const m = document.getElementById('mailModal');
+            m.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        function openTemplateModal(position) {
+            document.getElementById('tmplPosition').value = position;
+            document.getElementById('tmplTitle').textContent = `Edit Template • ${position}`;
+            const t = roleTemplates[position] || {};
+            document.getElementById('tmplSubject').value = t.subject || '';
+            document.getElementById('tmplBody').value = t.body || '';
+            const m = document.getElementById('templateModal');
+            m.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeTemplateModal() {
+            const m = document.getElementById('templateModal');
+            m.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeMailModal(); closeTemplateModal(); }});
+    </script>
+</body>
+</html>
