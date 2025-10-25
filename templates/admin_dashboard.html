@@ -253,11 +253,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Subject</label>
-                    <input name="subject_{{ slug }}" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+                    <input name="subject_{{ slug }}" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) else '' }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
                   </div>
                   <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700">Body</label>
-                    <textarea name="body_{{ slug }}" rows="4" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
+                    <textarea name="body_{{ slug }}" rows="4" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) else '' }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
                   </div>
                 </div>
               </div>
@@ -277,11 +277,11 @@
               <input type="hidden" name="position" value="{{ pos }}" />
               <div>
                 <label class="block text-sm font-medium text-gray-700">Subject</label>
-                <input name="subject" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
+                <input name="subject" type="text" placeholder="{{ mail_templates[pos].subject if mail_templates and mail_templates.get(pos) else '' }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Body</label>
-                <textarea name="body" rows="5" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
+                <textarea name="body" rows="5" placeholder="{{ mail_templates[pos].body if mail_templates and mail_templates.get(pos) else '' }}" class="mt-1 w-full rounded-lg border-gray-300 focus:border-cyan-500 focus:ring-cyan-500"></textarea>
               </div>
               <div>
                 <button type="submit" class="inline-flex items-center h-10 px-4 rounded-lg bg-gray-900 text-white font-semibold hover:bg-black">Save Template</button>

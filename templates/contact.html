@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contact - {{ (site_content.contactPage.companyName if site_content and site_content.contactPage and site_content.contactPage.companyName) else 'IgnividhaTech' }}</title>
+  <title>Contact - {{ site_content.contactPage.companyName if site_content and site_content.contactPage and site_content.contactPage.companyName else 'IgnividhaTech' }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script>
     // Theme init to keep pages consistent with dashboard's toggle (avoid FOUC)
@@ -281,8 +281,8 @@
 <body>
   <div class="container">
     <div style="text-align: center; margin-bottom: 40px;">
-  <h1>📞 {{ (site_content.contactPage.title if site_content and site_content.contactPage and site_content.contactPage.title) else 'Contact Us' }}</h1>
-  <p class="subtitle">{{ (site_content.contactPage.subtitle if site_content and site_content.contactPage and site_content.contactPage.subtitle) else 'Get in touch with IgnividhaTech or send us your query' }}</p>
+  <h1>📞 {{ site_content.contactPage.title if site_content and site_content.contactPage and site_content.contactPage.title else 'Contact Us' }}</h1>
+  <p class="subtitle">{{ site_content.contactPage.subtitle if site_content and site_content.contactPage and site_content.contactPage.subtitle else 'Get in touch with IgnividhaTech or send us your query' }}</p>
       <a href="{{ url_for('home') }}" class="back-btn">← Back to Home</a>
     </div>
 
@@ -306,7 +306,7 @@
           <i class="fas fa-user"></i>
           <div class="contact-content">
             <div class="contact-label">Company Name</div>
-            <div class="contact-value">{{ (site_content.contactPage.companyName if site_content and site_content.contactPage and site_content.contactPage.companyName) else 'IgnividhaTech' }}</div>
+            <div class="contact-value">{{ site_content.contactPage.companyName if site_content and site_content.contactPage and site_content.contactPage.companyName else 'IgnividhaTech' }}</div>
           </div>
         </div>
 
@@ -325,7 +325,7 @@
           <i class="fas fa-map-marker-alt"></i>
           <div class="contact-content">
             <div class="contact-label">Location</div>
-            <div class="contact-value">{{ (site_content.contactPage.location if site_content and site_content.contactPage and site_content.contactPage.location) else 'Hyderabad, India' }}</div>
+            <div class="contact-value">{{ site_content.contactPage.location if site_content and site_content.contactPage and site_content.contactPage.location else 'Hyderabad, India' }}</div>
           </div>
         </div>
 
@@ -333,7 +333,7 @@
           <i class="fas fa-building"></i>
           <div class="contact-content">
             <div class="contact-label">Work Mode</div>
-            <div class="contact-value">{{ (site_content.contactPage.workMode if site_content and site_content.contactPage and site_content.contactPage.workMode) else 'Remote / Work From Home' }}</div>
+            <div class="contact-value">{{ site_content.contactPage.workMode if site_content and site_content.contactPage and site_content.contactPage.workMode else 'Remote / Work From Home' }}</div>
           </div>
         </div>
       </div>
