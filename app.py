@@ -1470,3 +1470,54 @@ if __name__ == '__main__':
         port=int(os.environ.get('PORT', 5000)),
         debug=True,
     )
+
+# --- HEALTH CHECK ENDPOINT ---
+
+
+@app.route('/healthz')
+def healthz():
+    """Render key templates to verify Jinja/context health.
+    Returns JSON summary and 200 if all pass, else 500.
+    """
+    results: dict[str, dict] = {}
+
+    def check(name: str, func):
+        try:
+            html = func()
+            # Rendered HTML length; jsonify needs serializable values
+            results[name] = {
+                'ok': True,
+                'len': len(html) if hasattr(html, '__len__') else 0,
+            }
+        except Exception as e:
+            results[name] = {'ok': False, 'error': str(e)}
+
+    # Check dashboard, register, contact templates using the same context
+    check('dashboard', lambda: render_template(
+        'dashboard.html',
+        update=(_load_updates_list()[0]
+                if _load_updates_list() else 'Registration will open soon.'),
+        updates=_load_updates_list(),
+        site_content=_load_site_content(),
+    ))
+    check('register', lambda: render_template(
+        'register.html', site_content=_load_site_content()
+    ))
+    check('contact', lambda: render_template(
+        'contact.html', site_content=_load_site_content()
+    ))
+
+    all_ok = all(v.get('ok') for v in results.values())
+    resp = jsonify({
+        'status': 'ok' if all_ok else 'degraded',
+        'results': results,
+        'time': datetime.now().isoformat(timespec='seconds'),
+    })
+    # Avoid caching
+    resp.headers['Cache-Control'] = (
+        'no-store, no-cache, must-revalidate, max-age=0'
+    )
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    resp.status_code = 200 if all_ok else 500
+    return resp
